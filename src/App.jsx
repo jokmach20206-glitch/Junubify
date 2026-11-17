@@ -2,34 +2,19 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, ArrowRight, AudioLines, BadgeCheck, CircleDollarSign, Compass, Download, Headphones, Heart, Music2, Pause, Play, Radio, Smartphone, Sparkles, TrendingUp, Upload, Wallet } from 'lucide-react';
 import { supabase, supabaseConfigured } from './lib/supabase.js';
 import { createTrackAudioUrl, fetchArtistTracks, fetchPublishedTracks, submitTrack } from './lib/catalog.js';
+import ogAudioUrl from '../CHIEF BUTEE - OG.mp3';
+import ogCoverUrl from '../1794694060126.jpg';
 
 const paymentSetupMessage = 'Checkout and payouts are not connected yet. Configure a payment provider and secure backend before accepting money or promising transfers.';
 const emptyForm = { title: '', artist: '', genre: 'Afrobeat', album: '', cover: '' };
 const fallbackCover = 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&q=80&w=500';
-const samplePreviewDuration = 30;
 const formatPlaybackTime = (seconds) => {
   if (!Number.isFinite(seconds)) return '0:00';
   const totalSeconds = Math.floor(seconds);
   return `${Math.floor(totalSeconds / 60)}:${String(totalSeconds % 60).padStart(2, '0')}`;
 };
-// Public audio samples are previews for the UI, not official South Sudanese releases.
-const demoTracks = [
-  { id: 'demo-1', title: 'Juba City Lights (Preview)', artist: 'Junubify Sample', genre: 'Afrobeat', plays: 124500, cover: fallbackCover, audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3' },
-  { id: 'demo-2', title: 'White Nile Groove (Preview)', artist: 'Junubify Sample', genre: 'Dancehall', plays: 98200, cover: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&q=80&w=500', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3' },
-  { id: 'demo-3', title: 'Peace in South Sudan (Preview)', artist: 'Junubify Sample', genre: 'Hip-Hop', plays: 215800, cover: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&q=80&w=500', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3' },
-  { id: 'demo-4', title: 'Bahr el Ghazal Breeze (Preview)', artist: 'Junubify Sample', genre: 'Traditional & Cultural', plays: 68400, cover: 'https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&fit=crop&q=80&w=500', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3' },
-  { id: 'demo-5', title: 'Custom Bus Dance (Preview)', artist: 'Junubify Sample', genre: 'Afro-Pop', plays: 57300, cover: 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?auto=format&fit=crop&q=80&w=500', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3' },
-  { id: 'demo-6', title: 'Daybreak in Juba (Preview)', artist: 'Junubify Sample', genre: 'Afrobeat', cover: fallbackCover, audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3' },
-  { id: 'demo-7', title: 'Nile Market Rhythm (Preview)', artist: 'Junubify Sample', genre: 'Afrobeat', cover: fallbackCover, audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3' },
-  { id: 'demo-8', title: 'Drum Circle at Sunset (Preview)', artist: 'Junubify Sample', genre: 'Traditional & Cultural', cover: 'https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&fit=crop&q=80&w=500', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3' },
-  { id: 'demo-9', title: 'Songs of the Nile (Preview)', artist: 'Junubify Sample', genre: 'Traditional & Cultural', cover: 'https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&fit=crop&q=80&w=500', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3' },
-  { id: 'demo-10', title: 'New Dawn Cypher (Preview)', artist: 'Junubify Sample', genre: 'Hip-Hop', cover: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&q=80&w=500', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3' },
-  { id: 'demo-11', title: 'Juba Verse (Preview)', artist: 'Junubify Sample', genre: 'Hip-Hop', cover: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&q=80&w=500', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3' },
-  { id: 'demo-12', title: 'Juba Dancehall Nights (Preview)', artist: 'Junubify Sample', genre: 'Dancehall', cover: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&q=80&w=500', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3' },
-  { id: 'demo-13', title: 'Moonlight on the Nile (Preview)', artist: 'Junubify Sample', genre: 'Dancehall', cover: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&q=80&w=500', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3' },
-  { id: 'demo-14', title: 'Grace over Juba (Preview)', artist: 'Junubify Sample', genre: 'Gospel & Choir', cover: 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&q=80&w=500', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3' },
-  { id: 'demo-15', title: 'Voices of Hope (Preview)', artist: 'Junubify Sample', genre: 'Gospel & Choir', cover: 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&q=80&w=500', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3' },
-  { id: 'demo-16', title: 'Sunday Morning in Wau (Preview)', artist: 'Junubify Sample', genre: 'Gospel & Choir', cover: 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&q=80&w=500', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3' },
+const featuredTracks = [
+  { id: 'chief-butee-og', title: 'O.G.', artist: 'Chief Butee', genre: 'Uncategorized', plays: 0, cover: ogCoverUrl, audioUrl: ogAudioUrl },
 ];
 const genres = [
   { name: 'Juba Afrobeat', filter: 'Afrobeat', subtitle: 'Modern rhythms from Juba and beyond', color: 'genre-green', cover: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&q=80&w=800' },
@@ -39,10 +24,7 @@ const genres = [
   { name: 'Gospel & Choir', filter: 'Gospel', subtitle: 'Choirs and voices from home', color: 'genre-blue', cover: 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&q=80&w=800' },
 ];
 const featuredPlaylists = [
-  { id: 'playlist-1', name: 'Juba Nights', subtitle: 'Late-night energy', accent: 'forest', cover: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&q=80&w=800', genre: 'Afrobeat' },
-  { id: 'playlist-2', name: 'Nile Sunrise', subtitle: 'Warm rhythms', accent: 'gold', cover: 'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&q=80&w=800', genre: 'Traditional' },
-  { id: 'playlist-3', name: 'Unity Mix', subtitle: 'Cross-city favorites', accent: 'sunset', cover: 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&q=80&w=800', genre: 'Hip-Hop' },
-  { id: 'playlist-4', name: 'Bassline South', subtitle: 'Dance all night', accent: 'deep', cover: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&q=80&w=800', genre: 'Dancehall' },
+  { id: 'playlist-chief-butee-og', name: 'O.G. · Chief Butee', subtitle: 'Featured release', accent: 'forest', cover: ogCoverUrl, genre: 'Uncategorized' },
 ];
 
 function PlaylistDetail({ playlist, tracks, playing, isPlaying, onBack, onPlayTrack, emptyMessage, kind = 'playlist' }) {
@@ -60,7 +42,7 @@ function PlaylistDetail({ playlist, tracks, playing, isPlaying, onBack, onPlayTr
       <div className="playlist-detail-heading"><div><span className="eyebrow">{isGenre ? 'IN THIS GENRE' : 'IN THIS PLAYLIST'}</span><h2>Tracks</h2></div><span className="muted">{tracks.length} songs</span></div>
       {tracks.length ? <section className="track-list">{tracks.map((track, index) => {
         const trackIsPlaying = playing?.id === track.id && isPlaying;
-        return <article className="track-row" key={track.id}><span className="track-number">{String(index + 1).padStart(2, '0')}</span><button className="track-art" onClick={() => onPlayTrack(track)} aria-label={`Play ${track.title}`}><img src={track.cover || fallbackCover} alt=""/></button><div className="track-meta"><strong>{track.title}</strong><span>{track.artist} · {track.genre}</span></div><div className="track-stats"><span>{track.id.startsWith('demo-') ? '30 sec sample' : 'Track'}</span><button className="mini-play" onClick={() => onPlayTrack(track)} aria-label={`${trackIsPlaying ? 'Pause' : 'Play'} ${track.title}`}>{trackIsPlaying ? <Pause size={15}/> : <Play size={15}/>}</button></div></article>;
+        return <article className="track-row" key={track.id}><span className="track-number">{String(index + 1).padStart(2, '0')}</span><button className="track-art" onClick={() => onPlayTrack(track)} aria-label={`Play ${track.title}`}><img src={track.cover || fallbackCover} alt=""/></button><div className="track-meta"><strong>{track.title}</strong><span>{track.artist} · {track.genre}</span></div><div className="track-stats"><span>Track</span><button className="mini-play" onClick={() => onPlayTrack(track)} aria-label={`${trackIsPlaying ? 'Pause' : 'Play'} ${track.title}`}>{trackIsPlaying ? <Pause size={15}/> : <Play size={15}/>}</button></div></article>;
       })}</section> : <p className="muted">{emptyMessage}</p>}
     </section>
   );
@@ -93,7 +75,6 @@ export default function App() {
     try { return JSON.parse(localStorage.getItem('junubify-liked-tracks') || '{}'); } catch { return {}; }
   });
   const audioRef = useRef(null);
-  const sampleEndHandledRef = useRef(false);
 
   const notify = (message) => {
     setNotice(message);
@@ -170,9 +151,8 @@ export default function App() {
     }
   };
 
-  const catalogTracks = tracks.length ? tracks : demoTracks;
-  const isSamplePreview = playing?.id?.startsWith('demo-') ?? false;
-  const playerDuration = isSamplePreview ? samplePreviewDuration : audioDuration;
+  const catalogTracks = tracks.length ? tracks : featuredTracks;
+  const playerDuration = audioDuration;
   const matchesQuery = (track) => `${track.title} ${track.artist} ${track.genre}`.toLowerCase().includes(query.toLowerCase());
   const selectedPlaylistTracks = selectedPlaylist
     ? catalogTracks.filter((track) => track.genre.toLowerCase().includes(selectedPlaylist.genre.toLowerCase()) && matchesQuery(track))
@@ -192,14 +172,7 @@ export default function App() {
   const playTrack = async (track, queuedTracks = []) => {
     setPlayQueue(queuedTracks);
     if (playing?.id === track.id && audioRef.current) {
-      if (audioRef.current.paused) {
-        if (track.id.startsWith('demo-') && audioRef.current.currentTime >= samplePreviewDuration) {
-          audioRef.current.currentTime = 0;
-          setPlaybackTime(0);
-          sampleEndHandledRef.current = false;
-        }
-        audioRef.current.play().catch(() => notify('Could not play this audio file.'));
-      }
+      if (audioRef.current.paused) audioRef.current.play().catch(() => notify('Could not play this audio file.'));
       else audioRef.current.pause();
       return;
     }
@@ -208,7 +181,6 @@ export default function App() {
       if (!url) return notify('Audio is not available for this track.');
       setPlaybackTime(0);
       setAudioDuration(0);
-      sampleEndHandledRef.current = false;
       setAudioUrl(url);
       setPlaying(track);
     } catch (error) {
@@ -221,15 +193,15 @@ export default function App() {
     playTrack(tracksToPlay[0], tracksToPlay.slice(1));
   };
 
-  const advancePlayback = (keepFinishedSample = false) => {
+  const advancePlayback = () => {
     if (playQueue.length) {
       const [nextTrack, ...remainingTracks] = playQueue;
       playTrack(nextTrack, remainingTracks);
       return;
     }
     setPlayQueue([]);
-    if (!keepFinishedSample) setPlaying(null);
-    setPlaybackTime(keepFinishedSample ? samplePreviewDuration : 0);
+    setPlaying(null);
+    setPlaybackTime(0);
   };
 
   const toggleLike = (trackId) => setLikedTracks((current) => {
@@ -280,15 +252,15 @@ export default function App() {
       </header>
       <main className="content">
         {tab === 'discover' && (selectedPlaylist ? <PlaylistDetail playlist={selectedPlaylist} tracks={selectedPlaylistTracks} playing={playing} isPlaying={Boolean(audioRef.current && !audioRef.current.paused)} onBack={() => setSelectedPlaylist(null)} onPlayTrack={playTrack} emptyMessage={query ? 'No songs match your search.' : 'No songs are available in this playlist yet.'}/> : selectedGenre ? <PlaylistDetail playlist={selectedGenre} tracks={selectedGenreTracks} playing={playing} isPlaying={Boolean(audioRef.current && !audioRef.current.paused)} onBack={() => setSelectedGenre(null)} onPlayTrack={playTrack} emptyMessage={query ? 'No songs match your search.' : 'No songs are available in this genre yet.'} kind="genre"/> : <>
-          <section className="hero trend-hero"><div className="hero-copy"><span className="eyebrow"><AudioLines size={14}/> FEATURED JUBA PLAYLIST</span><h1>Top 50 South Sudan Trends</h1><p>Discover sounds from Juba, Wau, Malakal, and the diaspora. Explore community favorites and new releases.</p><div className="hero-actions"><button className="button primary hero-play" onClick={() => playAllTracks(visibleTracks)} disabled={!visibleTracks.length}><Play size={16} fill="currentColor"/> Play All <span>{visibleTracks.length}</span></button><button className="button secondary" onClick={() => setTab('studio')}><Upload size={16}/> Upload Song</button></div></div><div className="hero-badge"><BadgeCheck size={18}/> A home for local artists</div></section>
+          <section className="hero trend-hero"><div className="hero-copy"><span className="eyebrow"><AudioLines size={14}/> FEATURED RELEASE</span><h1>O.G. by Chief Butee</h1><p>Listen to the featured release from Chief Butee.</p><div className="hero-actions"><button className="button primary hero-play" onClick={() => playAllTracks(visibleTracks)} disabled={!visibleTracks.length}><Play size={16} fill="currentColor"/> Play All <span>{visibleTracks.length}</span></button><button className="button secondary" onClick={() => setTab('studio')}><Upload size={16}/> Upload Song</button></div></div><div className="hero-badge"><BadgeCheck size={18}/> A home for local artists</div></section>
 
-          <section className="featured-artist panel"><img src="https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&w=700&q=85" alt="Featured musician"/><div className="featured-artist-copy"><span className="eyebrow"><BadgeCheck size={14}/> FEATURED ARTIST</span><h2>Emmanuel Jal</h2><p>Artist, storyteller, and a powerful voice in South Sudanese music.</p><button className="button secondary" onClick={() => { setQuery('Emmanuel Jal'); document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth' }); }}><Headphones size={15}/> Explore artist</button></div><div className="artist-sparkle"><Sparkles size={24}/></div></section>
+          <section className="featured-artist panel"><img src={ogCoverUrl} alt="Junubify cover artwork"/><div className="featured-artist-copy"><span className="eyebrow"><BadgeCheck size={14}/> FEATURED ARTIST</span><h2>Chief Butee</h2><p>Listen to the featured release, O.G.</p><button className="button secondary" onClick={() => { setQuery('Chief Butee'); document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth' }); }}><Headphones size={15}/> Explore artist</button></div><div className="artist-sparkle"><Sparkles size={24}/></div></section>
 
           <section className="genre-section"><div className="section-heading"><div><span className="eyebrow">EXPLORE</span><h2><Compass size={22}/> Explore Juba Genres</h2></div></div><div className="genre-grid">{genres.map((genre) => { const matchingTracks = catalogTracks.filter((track) => track.genre.toLowerCase().includes(genre.filter.toLowerCase())); const expanded = expandedGenre === genre.filter; return <article key={genre.name} className={`genre-card ${genre.color} ${expanded ? 'expanded' : ''}`}><button className="genre-toggle" style={{ backgroundImage: `linear-gradient(180deg, rgba(7, 14, 10, .2), rgba(7, 14, 10, .9)), url(${genre.cover})` }} aria-expanded={expanded} onClick={() => setExpandedGenre((current) => current === genre.filter ? null : genre.filter)}><strong>{genre.name}</strong><span>{matchingTracks.length} {matchingTracks.length === 1 ? 'track' : 'tracks'} · {expanded ? 'Hide songs' : 'View songs'}</span></button>{expanded && <><div className="genre-song-list">{matchingTracks.length ? matchingTracks.slice(0, 3).map((track) => <button key={track.id} className="genre-song" onClick={() => playTrack(track)} aria-label={`Play ${track.title} by ${track.artist}`}><span className="genre-song-copy"><strong>{track.title}</strong><small>{track.artist} · {track.genre}</small></span><Play size={15} fill="currentColor"/></button>) : <p className="genre-empty">No songs available yet.</p>}</div><button className="genre-explore" onClick={() => openGenre(genre)} aria-label={`Explore ${genre.name}`}><Compass size={14}/> Explore genre <ArrowRight size={14}/></button></>}</article>; })}</div></section>
 
-          <section className="featured-playlists"><div className="section-heading compact-heading"><div><span className="eyebrow">CURATED FOR YOU</span><h2><Sparkles size={22}/> Featured playlists</h2></div></div><div className="playlist-grid">{featuredPlaylists.map((playlist) => { const count = catalogTracks.filter((track) => track.genre.toLowerCase().includes(playlist.genre.toLowerCase())).length; return <article key={playlist.id} className={`playlist-card ${playlist.accent}`}><div className="playlist-art" style={{ backgroundImage: `url(${playlist.cover})` }}><span className="playlist-tag">{count} sample {count === 1 ? 'track' : 'tracks'}</span><button className="playlist-play" onClick={() => openPlaylist(playlist, true)} aria-label={`Play ${playlist.name}`}><Play size={18} fill="currentColor"/></button></div><div className="playlist-body"><strong>{playlist.name}</strong><small>{playlist.subtitle}</small><button className="button secondary playlist-button" onClick={() => openPlaylist(playlist)}>Explore mix</button></div></article>; })}</div></section>
+          <section className="featured-playlists"><div className="section-heading compact-heading"><div><span className="eyebrow">CURATED FOR YOU</span><h2><Sparkles size={22}/> Featured release</h2></div></div><div className="playlist-grid">{featuredPlaylists.map((playlist) => { const count = catalogTracks.filter((track) => track.genre.toLowerCase().includes(playlist.genre.toLowerCase())).length; return <article key={playlist.id} className={`playlist-card ${playlist.accent}`}><div className="playlist-art" style={{ backgroundImage: `url(${playlist.cover})` }}><span className="playlist-tag">{count} {count === 1 ? 'track' : 'tracks'}</span><button className="playlist-play" onClick={() => openPlaylist(playlist, true)} aria-label={`Play ${playlist.name}`}><Play size={18} fill="currentColor"/></button></div><div className="playlist-body"><strong>{playlist.name}</strong><small>{playlist.subtitle}</small><button className="button secondary playlist-button" onClick={() => openPlaylist(playlist)}>Open release</button></div></article>; })}</div></section>
 
-          <section className="trending-section" id="catalog"><div className="now-trending-ticker" aria-label="Now trending community sample previews"><span>♪ NOW TRENDING · JUBA CITY LIGHTS · WHITE NILE GROOVE · PEACE IN SOUTH SUDAN · SAMPLE PREVIEWS</span></div><div className="section-heading"><div><span className="eyebrow">THE JUNUBIFY CATALOG</span><h2><TrendingUp size={22}/> Trending tracks in Juba</h2></div><span className="muted">{genreFilter && <button className="clear-filter" onClick={() => setGenreFilter('')}>Clear genre · </button>}{visibleTracks.length} tracks</span></div><div className="hot-badge"><span aria-hidden="true">✦</span> HOT RIGHT NOW</div>{!tracks.length && <p className="catalog-status">Sample previews · connect Supabase for the live catalog</p>}{loadingCatalog && <p className="muted catalog-status">Loading the published catalog…</p>}{catalogError && <div className="notice-box"><b>Catalog unavailable</b><p>{catalogError}</p><button className="button secondary" onClick={refreshCatalog}>Try again</button></div>}<section className="track-list">{visibleTracks.map((track, index) => <article className="track-row" key={track.id}><span className="track-number">{String(index + 1).padStart(2, '0')}</span><button className="track-art" onClick={() => playTrack(track)} aria-label={`Play ${track.title}`}><img src={track.cover || fallbackCover} alt=""/></button><div className="track-meta"><strong>{track.title}</strong><span>{track.artist} · {track.genre}</span></div><div className="track-stats"><span><Heart size={14}/> {Number(track.plays || 0).toLocaleString()}</span><button className="mini-play" onClick={() => playTrack(track)} aria-label={`Play ${track.title}`}>{playing?.id === track.id && audioRef.current && !audioRef.current.paused ? <Pause size={15}/> : <Play size={15}/>}</button><button className={`track-action ${likedTracks[track.id] ? 'liked' : ''}`} onClick={() => toggleLike(track.id)} aria-label={likedTracks[track.id] ? `Unlike ${track.title}` : `Like ${track.title}`}><Heart size={17} fill={likedTracks[track.id] ? 'currentColor' : 'none'}/></button><button className="track-action" onClick={() => shareTrack(track)} aria-label={`Share ${track.title}`}><Upload size={17}/></button></div></article>)}</section>{!visibleTracks.length && <div className="panel empty-catalog"><Music2 size={26}/><b>No tracks match this filter.</b><span>Choose another genre or clear your search.</span></div>}</section>
+          <section className="trending-section" id="catalog"><div className="now-trending-ticker" aria-label="Featured track: O.G. by Chief Butee"><span>♪ NOW TRENDING · O.G. · CHIEF BUTEE</span></div><div className="section-heading"><div><span className="eyebrow">THE JUNUBIFY CATALOG</span><h2><TrendingUp size={22}/> Trending tracks in Juba</h2></div><span className="muted">{genreFilter && <button className="clear-filter" onClick={() => setGenreFilter('')}>Clear genre · </button>}{visibleTracks.length} tracks</span></div><div className="hot-badge"><span aria-hidden="true">✦</span> HOT RIGHT NOW</div>{!tracks.length && <p className="catalog-status">Featured release · connect Supabase for the live catalog</p>}{loadingCatalog && <p className="muted catalog-status">Loading the published catalog…</p>}{catalogError && <div className="notice-box"><b>Catalog unavailable</b><p>{catalogError}</p><button className="button secondary" onClick={refreshCatalog}>Try again</button></div>}<section className="track-list">{visibleTracks.map((track, index) => <article className="track-row" key={track.id}><span className="track-number">{String(index + 1).padStart(2, '0')}</span><button className="track-art" onClick={() => playTrack(track)} aria-label={`Play ${track.title}`}><img src={track.cover || fallbackCover} alt=""/></button><div className="track-meta"><strong>{track.title}</strong><span>{track.artist} · {track.genre}</span></div><div className="track-stats"><span><Heart size={14}/> {Number(track.plays || 0).toLocaleString()}</span><button className="mini-play" onClick={() => playTrack(track)} aria-label={`Play ${track.title}`}>{playing?.id === track.id && audioRef.current && !audioRef.current.paused ? <Pause size={15}/> : <Play size={15}/>}</button><button className={`track-action ${likedTracks[track.id] ? 'liked' : ''}`} onClick={() => toggleLike(track.id)} aria-label={likedTracks[track.id] ? `Unlike ${track.title}` : `Like ${track.title}`}><Heart size={17} fill={likedTracks[track.id] ? 'currentColor' : 'none'}/></button><button className="track-action" onClick={() => shareTrack(track)} aria-label={`Share ${track.title}`}><Upload size={17}/></button></div></article>)}</section>{!visibleTracks.length && <div className="panel empty-catalog"><Music2 size={26}/><b>No tracks match this filter.</b><span>Choose another genre or clear your search.</span></div>}</section>
           <section className="upload-promo"><div><span className="eyebrow">ARE YOU AN ARTIST?</span><h2>Bring your sound to Junubify.</h2><p>Submit your music securely for review in Artist Studio.</p></div><button className="button primary" onClick={() => setTab('studio')}><Upload size={16}/> Open studio</button></section>
         </>)}
 
@@ -298,7 +270,20 @@ export default function App() {
 
         {tab === 'download' && <section className="app-download panel"><div className="download-icon"><Smartphone size={42}/></div><span className="eyebrow">LISTEN WHEREVER YOU ARE</span><h1>Get Junubify for Android &amp; iOS</h1><p>Use the installable web app to keep Junubify close. Native store downloads will be linked once the apps are published.</p><div className="store-buttons"><div className="store-placeholder"><Download size={22}/><span><small>ANDROID APP</small><b>Coming soon</b></span></div><div className="store-placeholder"><Download size={22}/><span><small>APPLE APP</small><b>Coming soon</b></span></div></div><div className="qr-placeholder" aria-label="Decorative QR-style pattern" role="img">{Array.from({ length: 64 }, (_, index) => <i key={index} className={(index * 7 + index % 3) % 4 === 0 ? 'qr-lit' : ''}/>)}</div><p className="muted">To install the current web app, use your browser menu and choose “Add to Home screen”.</p></section>}
       </main>
-      <footer className="player"><div className="player-track">{playing ? <><img src={playing.cover || fallbackCover} alt=""/><div><b>{playing.title}</b><span>{playing.artist}</span></div></> : <><span className="player-note"><Music2 size={16}/></span><div><b>Nothing playing</b><span>Pick a track to listen</span></div></>}</div><audio ref={audioRef} src={audioUrl || undefined} onLoadedMetadata={(event) => setAudioDuration(event.currentTarget.duration)} onTimeUpdate={(event) => { const audio = event.currentTarget; if (isSamplePreview && audio.currentTime >= samplePreviewDuration && !sampleEndHandledRef.current) { sampleEndHandledRef.current = true; audio.pause(); audio.currentTime = samplePreviewDuration; advancePlayback(true); return; } setPlaybackTime(audio.currentTime); }} onEnded={() => advancePlayback()}/>{playing && <div className="player-progress" aria-label="Playback progress">{isSamplePreview && <span className="preview-label">SAMPLE</span>}<span>{formatPlaybackTime(playbackTime)}</span><progress max={playerDuration || 1} value={playerDuration ? Math.min(playbackTime, playerDuration) : 0}/><span>{formatPlaybackTime(playerDuration)}</span></div>}<button className="mini-play" onClick={() => playing && playTrack(playing)} aria-label="Toggle playback">{playing && audioRef.current && !audioRef.current.paused ? <Pause size={16}/> : <Play size={16}/>}</button></footer>
+      <footer className="player">
+        <div className="player-track">
+          {playing ? <><img src={playing.cover || fallbackCover} alt=""/><div><b>{playing.title}</b><span>{playing.artist}</span></div></> : <><span className="player-note"><Music2 size={16}/></span><div><b>Nothing playing</b><span>Pick a track to listen</span></div></>}
+        </div>
+        <audio
+          ref={audioRef}
+          src={audioUrl || undefined}
+          onLoadedMetadata={(event) => setAudioDuration(event.currentTarget.duration)}
+          onTimeUpdate={(event) => setPlaybackTime(event.currentTarget.currentTime)}
+          onEnded={advancePlayback}
+        />
+        {playing && <div className="player-progress" aria-label="Playback progress"><span>{formatPlaybackTime(playbackTime)}</span><progress max={playerDuration || 1} value={playerDuration ? Math.min(playbackTime, playerDuration) : 0}/><span>{formatPlaybackTime(playerDuration)}</span></div>}
+        <button className="mini-play" onClick={() => playing && playTrack(playing)} aria-label="Toggle playback">{playing && audioRef.current && !audioRef.current.paused ? <Pause size={16}/> : <Play size={16}/>}</button>
+      </footer>
       {notice && <div className="toast" role="status">{notice}</div>}
     </div>
   );
