@@ -2,14 +2,14 @@ import './admin-nav.css';
 
 const addAdminReviewLink = () => {
   const nav = document.querySelector('.nav-tabs');
-  if (!nav || nav.querySelector('[data-admin-review-link]')) return;
+  if (!nav || nav.querySelector('[data-upload-verification-link]')) return;
 
   const link = document.createElement('a');
   link.href = '/admin.html';
-  link.className = 'admin-review-nav';
-  link.dataset.adminReviewLink = 'true';
-  link.setAttribute('aria-label', 'Admin review');
-  link.innerHTML = '<span aria-hidden="true">✓</span> Admin review';
+  link.className = 'admin-verification-nav';
+  link.dataset.uploadVerificationLink = 'true';
+  link.setAttribute('aria-label', 'Upload verification');
+  link.innerHTML = '<span aria-hidden="true">✓</span> Verify uploads';
   nav.append(link);
 };
 

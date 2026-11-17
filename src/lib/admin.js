@@ -1,6 +1,6 @@
 import { supabase } from './supabase.js';
 
-const TRACK_FIELDS = 'id,title,artist_name,genre,album,cover_url,audio_path,status,created_at';
+const TRACK_FIELDS = 'id,title,artist_name,genre,album,cover_url,audio_path,status,verified_at,created_at';
 const AUDIO_BUCKET = 'junubify-audio';
 
 function requireSupabase() {
@@ -8,7 +8,7 @@ function requireSupabase() {
   return supabase;
 }
 
-function mapReviewTrack(track) {
+function mapVerificationTrack(track) {
   return {
     id: track.id,
     title: track.title,
@@ -18,22 +18,23 @@ function mapReviewTrack(track) {
     cover: track.cover_url || null,
     audioPath: track.audio_path,
     status: track.status,
+    verifiedAt: track.verified_at,
     createdAt: track.created_at,
   };
 }
 
-export async function fetchPendingReviewTracks() {
+export async function fetchTracksAwaitingVerification() {
   const { data, error } = await requireSupabase()
     .from('tracks')
     .select(TRACK_FIELDS)
-    .eq('status', 'pending_review')
+    .or('status.eq.pending_review,and(status.eq.published,verified_at.is.null)')
     .order('created_at', { ascending: true })
     .limit(100);
   if (error) throw error;
-  return data.map(mapReviewTrack);
+  return data.map(mapVerificationTrack);
 }
 
-export async function createReviewAudioUrl(audioPath) {
+export async function createVerificationAudioUrl(audioPath) {
   const { data, error } = await requireSupabase()
     .storage.from(AUDIO_BUCKET)
     .createSignedUrl(audioPath, 5 * 60);
@@ -41,13 +42,16 @@ export async function createReviewAudioUrl(audioPath) {
   return data.signedUrl;
 }
 
-export async function reviewTrack(trackId, status) {
-  if (!['published', 'rejected'].includes(status)) throw new Error('Invalid review decision.');
+export async function verifyTrack(trackId, decision) {
+  if (!['verify', 'reject'].includes(decision)) throw new Error('Invalid verification decision.');
+  const updates = decision === 'verify'
+    ? { status: 'published', verified_at: new Date().toISOString() }
+    : { status: 'rejected', verified_at: null };
   const { data, error } = await requireSupabase()
     .from('tracks')
-    .update({ status })
+    .update(updates)
     .eq('id', trackId)
-    .eq('status', 'pending_review')
+    .or('status.eq.pending_review,and(status.eq.published,verified_at.is.null)')
     .select('id')
     .single();
   if (error) throw error;

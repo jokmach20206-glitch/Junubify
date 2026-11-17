@@ -160,6 +160,7 @@ img { max-width: 100%; }
 .track-meta { display: grid; gap: 5px; min-width: 0; }
 .track-meta strong { overflow: hidden; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
 .track-meta span { overflow: hidden; color: var(--muted); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.track-verification { color: #efc06e !important; }
 .track-stats { display: flex; align-items: center; gap: 14px; }
 .track-stats > span { display: inline-flex; align-items: center; gap: 5px; color: var(--muted); font-size: 11px; }
 .track-stats > span svg { color: var(--coral); }
@@ -216,6 +217,8 @@ img { max-width: 100%; }
 .player-track b, .player-track small { max-width: min(50vw, 420px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .player-track b { font-size: 12px; }
 .player-track small { color: var(--muted); font-size: 11px; }
+.player-open-icon { flex: 0 0 auto; color: var(--green); transition: transform .18s ease; }
+.player-track:hover .player-open-icon { transform: translateY(-2px); }
 .player-progress { display: flex; align-items: center; gap: 9px; min-width: 0; color: var(--muted); font-size: 10px; font-variant-numeric: tabular-nums; }
 .player-progress .preview-label { color: var(--green); font-size: 9px; font-weight: 800; letter-spacing: .08em; }
 .player-progress progress { display: block; width: 100%; min-width: 36px; height: 4px; overflow: hidden; border: 0; border-radius: 99px; appearance: none; background: #29372f; }
@@ -321,7 +324,6 @@ img { max-width: 100%; }
   .track-stats > span { gap: 3px; font-size: 9px; }
   .track-stats > span svg { width: 12px; }
   .track-stats .mini-play, .track-action { width: 28px; height: 28px; }
-  .track-action { display: none; }
   .upload-promo { align-items: flex-start; flex-direction: column; padding: 18px; }
   .upload-promo h2 { font-size: 18px; }
   .studio-auth, .upload-form, .plan-card { padding: 17px; }

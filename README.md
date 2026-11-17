@@ -20,13 +20,13 @@ Listeners can save tracks to **Your Library**, filter liked songs by genre, and 
 ## Configure persistent song submissions
 
 1. Create a Supabase project and enable email authentication (configure allowed redirect URLs for your deployed site).
-2. Run `supabase/migrations/20261109000000_platform_backend.sql` in the project SQL editor.
+2. Run these migrations in order in the Supabase SQL editor: `20261109000000_platform_backend.sql`, `20261114000000_admin_track_review.sql`, then `20261117000000_post_publish_track_verification.sql`.
 3. Set the project URL and anon/publishable key in `.env.local` and in your web host's environment settings.
 4. Start the app. Artists request an email sign-in link, then submit metadata and audio from Artist Studio.
 
-Audio uploads go to a private 50 MB bucket under the authenticated artist's UUID. Database and storage row-level security restrict upload/read access; new tracks remain `pending_review`. Only a trusted administrator/backend should approve a track by changing its status to `published`. The public catalog fetches published rows, and audio is served with temporary signed URLs. The UI's sample tracks remain demo content.
+Audio uploads go to a 50 MB bucket under the authenticated artist's UUID. New submissions are published immediately and have a null `verified_at` until a trusted administrator verifies them in **Verify uploads** (`/admin.html`). Admins should listen to the audio, check the artist/title/cover metadata, and confirm the submitter's rights assertion. **Reject & remove** changes the status to `rejected` and removes the track from the public catalog. Existing tracks that were already published are marked verified by the migration; older pending submissions remain private until an admin uses **Publish & verify**. Audio is served with temporary signed URLs. The UI's sample tracks remain demo content.
 
-Before launch, add an admin review workflow, rate limits/abuse controls, stronger content validation/scanning, backup/retention policies, and production auth email configuration. The browser file size/type checks are usability checks, not a security boundary.
+Immediate publication means content is public before an admin checks it. Add rate limits/abuse controls, stronger content validation/scanning, a listener reporting path, backup/retention policies, and production auth email configuration before launch. If pre-publication safety is required, restore the pending-review insert policy rather than using this post-publication workflow. Browser file size/type checks are usability checks, not a security boundary.
 
 ## Deploy to Vercel
 

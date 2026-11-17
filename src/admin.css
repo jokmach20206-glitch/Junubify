@@ -1,5 +1,3 @@
-import './styles.css';
-
 :root { color-scheme: dark; font-family: "Avenir Next", Avenir, "Segoe UI", sans-serif; color: #f0f3ec; background: #0c1311; }
 * { box-sizing: border-box; }
 body { min-width: 320px; min-height: 100vh; margin: 0; background: radial-gradient(ellipse at 50% -20%, rgba(52, 112, 78, .22), transparent 44%), #0c1311; }

@@ -20,6 +20,7 @@ function mapTrack(track) {
     cover: track.cover_url || 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&q=80&w=500',
     audioPath: track.audio_path,
     status: track.status,
+    verifiedAt: track.verified_at,
     fileName: track.audio_path.split('/').pop(),
   };
 }
@@ -27,7 +28,7 @@ function mapTrack(track) {
 export async function fetchPublishedTracks() {
   const data = throwIfError(await supabase
     .from('tracks')
-    .select('id,title,artist_name,genre,album,cover_url,audio_path,status,plays,created_at')
+    .select('id,title,artist_name,genre,album,cover_url,audio_path,status,verified_at,plays,created_at')
     .eq('status', 'published')
     .order('created_at', { ascending: false })
     .limit(100));
@@ -37,7 +38,7 @@ export async function fetchPublishedTracks() {
 export async function fetchArtistTracks(artistId) {
   const data = throwIfError(await supabase
     .from('tracks')
-    .select('id,title,artist_name,genre,album,cover_url,audio_path,status,plays,created_at')
+    .select('id,title,artist_name,genre,album,cover_url,audio_path,status,verified_at,plays,created_at')
     .eq('artist_id', artistId)
     .order('created_at', { ascending: false })
     .limit(100));
@@ -76,9 +77,9 @@ export async function submitTrack({ file, form, artistId }) {
     album: form.album.trim() || 'Single',
     cover_url: form.cover.trim() || null,
     audio_path: audioPath,
-    status: 'pending_review',
+    status: 'published',
     rights_confirmed_at: new Date().toISOString(),
-  }).select('id,title,artist_name,genre,album,cover_url,audio_path,status,plays,created_at').single();
+  }).select('id,title,artist_name,genre,album,cover_url,audio_path,status,verified_at,plays,created_at').single();
 
   if (insert.error) {
     // The storage delete policy permits removing only this user's unreferenced uploads.
