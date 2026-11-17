@@ -18,12 +18,13 @@
   .brand .brand-icon { width: 38px; height: 38px; }
   .brand b { font-size: 13px; }
   .brand small { font-size: 8px; }
-  .search { flex: 1 1 130px; width: auto; min-width: 0; padding: 10px 12px; font-size: 12px; }
+  .search-form { flex: 1 1 130px; width: auto; min-width: 0; }
+  .search { width: auto; min-width: 0; padding: 10px 12px; font-size: 12px; }
 
   .nav-tabs {
     order: 3;
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     flex: 1 0 100%;
     width: 100%;
     min-width: 0;
@@ -58,6 +59,19 @@
   .hero h1 { max-width: 15ch; font-size: clamp(30px, 7.6vw, 36px); line-height: 1.1; }
   .hero + .section-heading h2 { font-size: clamp(26px, 6.8vw, 30px); line-height: 1.15; }
   .player { padding-bottom: max(10px, env(safe-area-inset-bottom)); }
+  .liked-library-hero { grid-template-columns: 100px minmax(0, 1fr); align-items: center; min-height: 150px; gap: 12px; padding: 14px; }
+  .liked-art { grid-row: span 2; width: 100px; }
+  .liked-art svg { width: 32px; }
+  .liked-library-copy h1 { font-size: 30px; }
+  .liked-library-copy p { font-size: 11px; }
+  .liked-library-actions { grid-column: 2; }
+  .now-playing-view { padding-right: 16px; padding-left: 16px; }
+  .now-playing-content { gap: 20px; }
+  .artist-preview { grid-template-columns: minmax(120px, .9fr) 1.1fr; gap: 14px; }
+  .artist-preview-art { min-height: 190px; }
+  .artist-preview-copy { padding: 16px 14px 16px 0; }
+  .player-utility-controls { flex-wrap: wrap; gap: 8px; }
+  .sleep-timer-status { flex: 1 0 100%; }
 }
 
 @media (max-width: 520px) {
@@ -65,13 +79,34 @@
   .brand .brand-icon { width: 34px; height: 34px; }
   .brand b { font-size: 12px; }
   .brand small { display: none; }
-  .search { flex-basis: 110px; padding: 9px 10px; font-size: 11px; }
+  .search-form { flex-basis: 110px; gap: 5px; }
+  .search { padding: 9px 8px; font-size: 11px; }
+  .search-button { width: 36px; min-height: 36px; padding: 0; }
+  .search-button span { display: none; }
   .nav-tabs button { flex-direction: column; gap: 3px; min-height: 46px; padding: 5px 1px; font-size: 9px; }
   .track-row { grid-template-columns: 18px 64px minmax(0, 1fr) auto; gap: 8px; min-height: 84px; padding: 8px; }
   .track-art { width: 64px; height: 64px; flex-basis: 64px; }
   .track-stats span { font-size: 11px; }
   .hero h1 { max-width: 16ch; font-size: clamp(29px, 7.4vw, 33px); }
   .hero + .section-heading h2 { font-size: 27px; }
+  .liked-library-hero { grid-template-columns: 72px minmax(0, 1fr); gap: 10px; padding: 12px; }
+  .liked-art { width: 72px; }
+  .liked-art svg { width: 25px; }
+  .liked-library-copy h1 { font-size: 24px; }
+  .liked-library-copy p { font-size: 10px; }
+  .liked-library-actions .button { min-height: 34px; padding: 0 9px; font-size: 10px; }
+  .now-playing-view { padding: max(12px, env(safe-area-inset-top)) 12px max(110px, calc(90px + env(safe-area-inset-bottom))); }
+  .now-playing-header { min-height: 44px; margin-bottom: 12px; }
+  .now-playing-content { gap: 16px; }
+  .now-playing-art { width: min(100%, 430px); }
+  .now-playing-track h1 { font-size: 22px; }
+  .full-player-toggle { width: 54px; height: 54px; }
+  .lyrics-preview, .player-credits, .up-next { padding: 16px; }
+  .artist-preview { grid-template-columns: minmax(92px, .8fr) 1.2fr; gap: 12px; }
+  .artist-preview-art { min-height: 170px; }
+  .artist-preview-copy { padding: 14px 12px 14px 0; }
+  .artist-preview h2, .player-section-heading h2 { font-size: 16px; }
+  .artist-preview p { font-size: 12px; }
 }
 
 .player-track img {

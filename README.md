@@ -13,6 +13,10 @@ npm run dev
 
 The anon/publishable key is intended for browser use only. Never put a Supabase `service_role` key, payment secret, or webhook secret in a `VITE_` variable.
 
+## Listener features
+
+Listeners can save tracks to **Your Library**, filter liked songs by genre, and use the expanded player to seek, navigate playback history, shuffle the upcoming queue, and view the next tracks. Shared track links reopen the selected track in the player. The expanded player also supports a 30-minute sleep timer and audio-output selection in browsers that expose the required device APIs. Likes and followed artists are stored locally on the current device. Lyrics, artist bios, and additional credits are shown only when the app has that content; the current catalog does not yet provide those details.
+
 ## Configure persistent song submissions
 
 1. Create a Supabase project and enable email authentication (configure allowed redirect URLs for your deployed site).
