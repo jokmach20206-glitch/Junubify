@@ -34,11 +34,15 @@ create policy "Admins can read rejected tracks"
 
 grant update (status, verified_at) on public.tracks to authenticated;
 
-create policy "Admins can verify published tracks"
+-- Include pending_review so submissions made before the post-publication
+-- workflow can be published and verified from the admin queue.
+create policy "Admins can verify tracks awaiting verification"
   on public.tracks for update to authenticated
   using (
-    status = 'published'
-    and verified_at is null
+    (
+      (status = 'pending_review' and verified_at is null)
+      or (status = 'published' and verified_at is null)
+    )
     and (auth.jwt() -> 'app_metadata' ->> 'role') = 'admin'
   )
   with check (
