@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import { recordAnalyticsEvent } from './lib/analytics.js';
+import { supabase } from './lib/supabase.js';
 import './analytics.css';
 
 function AnalyticsTracker() {
@@ -79,5 +80,5 @@ function AnalyticsTracker() {
 const host = document.createElement('div');
 host.id = 'junubify-analytics-tracker';
 document.body.appendChild(host);
-window.__junubifySupabase = (await import('./lib/supabase.js')).supabase;
+window.__junubifySupabase = supabase;
 createRoot(host).render(<AnalyticsTracker/>);
