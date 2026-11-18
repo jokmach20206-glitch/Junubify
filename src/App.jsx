@@ -1,3 +1,4 @@
+updated 
 import React, { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, ArrowRight, AudioLines, BadgeCheck, ChevronDown, ChevronUp, CircleDollarSign, Compass, Download, Headphones, Heart, ListMusic, Music2, Pause, Play, Radio, Search, Share2, Shuffle, SkipBack, SkipForward, Smartphone, Sparkles, Timer, TrendingUp, Upload, Volume2, Wallet } from 'lucide-react';
 import chiefButeeAudioUrl from '../CHIEF BUTEE - OG.mp3?url';
