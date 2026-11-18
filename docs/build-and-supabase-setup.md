@@ -11,7 +11,11 @@ For a new Supabase project, apply the SQL migrations in timestamp order from the
 1. `supabase/migrations/20261109000000_platform_backend.sql`
 2. `supabase/migrations/20261109010000_audio_cleanup_policy.sql`
 3. `supabase/migrations/20261109020000_payment_foundation.sql`
+4. `supabase/migrations/20261114000000_admin_track_review.sql`
+5. `supabase/migrations/20261117000000_automated_review_checks.sql`
 
 The second migration adds the storage cleanup policy used when an audio upload succeeds but track metadata insertion fails. The payment migration only creates a restricted ledger foundation; payment checkout, webhooks, and payouts remain disabled until a provider integration is implemented and verified.
+
+The last two migrations enable admin-only upload confirmation and automated metadata triage. Automated checks never publish tracks; see `docs/admin-review.md`.
 
 Never put Supabase service-role credentials, payment secrets, or webhook secrets in frontend `VITE_` variables. The browser app should use only the Supabase project URL and its anon/publishable key.
