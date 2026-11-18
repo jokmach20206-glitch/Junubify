@@ -1,4 +1,4 @@
-const CACHE_NAME = 'junubify-shell-v1';
+const CACHE_NAME = 'junubify-shell-v2';
 const APP_SHELL = ['/', '/manifest.webmanifest', '/icons/junubify.svg'];
 const PRIVATE_API_PATHS = ['/rest/v1/', '/auth/v1/', '/storage/v1/', '/functions/v1/'];
 
@@ -24,22 +24,22 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(request).then((response) => {
         const copy = response.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put('/', copy));
+        caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
         return response;
-      }).catch(() => caches.match('/'))
+      }).catch(() => caches.match(request).then((cached) => cached || caches.match('/')))
     );
     return;
   }
 
   if (/\.(?:js|css|svg|png|jpg|jpeg|webp|woff2?)$/i.test(url.pathname) || url.pathname === '/manifest.webmanifest') {
     event.respondWith(
-      caches.match(request).then((cached) => cached || fetch(request).then((response) => {
+      fetch(request).then((response) => {
         if (response.ok) {
           const copy = response.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
         }
         return response;
-      }))
+      }).catch(() => caches.match(request))
     );
   }
 });
