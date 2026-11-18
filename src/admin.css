@@ -1,5 +1,3 @@
-import './styles.css';
-
 :root { color-scheme: dark; font-family: "Avenir Next", Avenir, "Segoe UI", sans-serif; color: #f0f3ec; background: #0c1311; }
 * { box-sizing: border-box; }
 body { min-width: 320px; min-height: 100vh; margin: 0; background: radial-gradient(ellipse at 50% -20%, rgba(52, 112, 78, .22), transparent 44%), #0c1311; }
@@ -36,6 +34,14 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid 
 .queue-summary { display: flex; align-items: center; gap: 10px; margin: 24px 0 15px; color: #9aa9a0; font-size: 13px; }
 .queue-summary svg { margin-left: auto; color: #efc06e; }
 .queue-count { display: grid; width: 30px; height: 30px; place-items: center; border: 1px solid rgba(239,192,110,.3); border-radius: 50%; color: #efc06e; background: rgba(239,192,110,.08); font-weight: 800; }
+.automation-summary { padding: 22px; border: 1px solid rgba(215,231,220,.12); border-radius: 10px; background: linear-gradient(145deg, rgba(23,35,29,.96), rgba(17,26,22,.96)); }
+.automation-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.automation-stats article { display: grid; gap: 7px; padding: 18px; border: 1px solid rgba(215,231,220,.12); border-radius: 8px; }
+.automation-stats article > span { color: #70d7a3; font-size: 30px; font-weight: 800; }
+.automation-stats article > b { color: #f0f3ec; font-size: 14px; }
+.automation-stats article > small { color: #9aa9a0; }
+.automation-summary > p { max-width: 720px; margin: 20px 0; color: #9aa9a0; font-size: 13px; line-height: 1.65; }
+.admin-page-link { margin-top: 20px; text-decoration: none; }
 .review-list { display: grid; gap: 13px; }
 .review-card { display: grid; grid-template-columns: 90px minmax(0, 1fr); gap: 18px; padding: 18px; border: 1px solid rgba(215,231,220,.12); border-radius: 10px; background: linear-gradient(145deg, rgba(23,35,29,.96), rgba(17,26,22,.96)); }
 .review-art { display: grid; width: 90px; height: 90px; place-items: center; overflow: hidden; border: 1px solid rgba(215,231,220,.12); border-radius: 7px; color: #70d7a3; background: #17241d; }
@@ -46,6 +52,8 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid 
 .review-title p { margin: 0; color: #9aa9a0; font-size: 12px; }
 .pending-badge { flex: 0 0 auto; padding: 5px 8px; border: 1px solid rgba(239,192,110,.25); border-radius: 99px; color: #efc06e; background: rgba(239,192,110,.07); font-size: 10px; }
 .review-details { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 13px; color: #9aa9a0; font-size: 11px; }
+.review-check-results { margin-top: 13px; color: #dce5dc; font-size: 12px; }
+.review-check-results ul { margin: 7px 0 0; padding-left: 18px; color: #efc06e; line-height: 1.6; }
 .review-audio { margin-top: 14px; }
 .review-audio audio { display: block; width: min(100%, 440px); height: 38px; }
 .review-actions { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 14px; }
