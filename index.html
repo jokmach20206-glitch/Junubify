@@ -31,6 +31,7 @@
         window.addEventListener('load', () => navigator.serviceWorker.register('/service-worker.js').catch((error) => console.warn('Offline support could not be enabled:', error)));
       }
     </script>
+    <script type="module" src="/src/listening-details.jsx"></script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
