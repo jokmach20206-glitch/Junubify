@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, ArrowRight, AudioLines, BadgeCheck, CircleDollarSign, Compass, Copy, Download, Headphones, Heart, Music2, Pause, Play, Radio, Share2, SkipBack, SkipForward, Smartphone, Sparkles, TrendingUp, Upload, Volume2, VolumeX, Wallet, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, AudioLines, BadgeCheck, CircleDollarSign, Compass, Copy, Download, Headphones, Heart, Music2, Pause, Play, Radio, Share2, SkipBack, SkipForward, Smartphone, Sparkles, Upload, Volume2, VolumeX, X } from 'lucide-react';
 import { supabase, supabaseConfigured } from './lib/supabase.js';
 import { createTrackAudioUrl, fetchArtistTracks, fetchPublishedTracks, submitTrack } from './lib/catalog.js';
 import ogAudioUrl from '../CHIEF BUTEE - OG.mp3';
@@ -17,11 +17,11 @@ const featuredTracks = [
   { id: 'chief-butee-og', title: 'O.G.', artist: 'Chief Butee', genre: 'Uncategorized', plays: 0, cover: ogCoverUrl, audioUrl: ogAudioUrl },
 ];
 const genres = [
-  { name: 'Juba Afrobeat', filter: 'Afrobeat', subtitle: 'Modern rhythms from Juba and beyond', color: 'genre-green', cover: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&q=80&w=800' },
-  { name: 'Traditional & Cultural', filter: 'Traditional', subtitle: 'Heritage sounds and cultural rhythms', color: 'genre-orange', cover: 'https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&fit=crop&q=80&w=800' },
-  { name: 'South Sudan Hip-Hop', filter: 'Hip-Hop', subtitle: 'Stories and bars from across South Sudan', color: 'genre-purple', cover: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&q=80&w=800' },
-  { name: 'Reggae & Dancehall', filter: 'Dancehall', subtitle: 'Island rhythms with a South Sudan sound', color: 'genre-red', cover: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&q=80&w=800' },
-  { name: 'Gospel & Choir', filter: 'Gospel', subtitle: 'Choirs and voices from home', color: 'genre-blue', cover: 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&q=80&w=800' },
+  { name: 'Juba Afrobeat', filter: 'Afrobeat', subtitle: 'Modern rhythms from Juba and beyond', color: 'genre-green', cover: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&q=80&w=900' },
+  { name: 'Traditional & Cultural', filter: 'Traditional', subtitle: 'Heritage sounds and cultural rhythms', color: 'genre-orange', cover: 'https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&fit=crop&q=80&w=900' },
+  { name: 'South Sudan Hip-Hop', filter: 'Hip-Hop', subtitle: 'Stories and bars from across South Sudan', color: 'genre-purple', cover: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd815?auto=format&fit=crop&q=80&w=900' },
+  { name: 'Reggae & Dancehall', filter: 'Dancehall', subtitle: 'Island rhythms with a South Sudan sound', color: 'genre-red', cover: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&q=80&w=900' },
+  { name: 'Gospel & Choir', filter: 'Gospel', subtitle: 'Choirs and voices from home', color: 'genre-blue', cover: 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&q=80&w=900' },
 ];
 const featuredPlaylists = [
   { id: 'playlist-chief-butee-og', name: 'O.G. · Chief Butee', subtitle: 'Featured release', accent: 'forest', cover: ogCoverUrl, genre: 'Uncategorized' },
@@ -42,7 +42,7 @@ function PlaylistDetail({ playlist, tracks, playing, isPlaying, onBack, onPlayTr
       <div className="playlist-detail-heading"><div><span className="eyebrow">{isGenre ? 'IN THIS GENRE' : 'IN THIS PLAYLIST'}</span><h2>Tracks</h2></div><span className="muted">{tracks.length} songs</span></div>
       {tracks.length ? <section className="track-list">{tracks.map((track, index) => {
         const trackIsPlaying = playing?.id === track.id && isPlaying;
-        return <article className="track-row" key={track.id}><span className="track-number">{String(index + 1).padStart(2, '0')}</span><button className="track-art" onClick={() => onPlayTrack(track)} aria-label={`Play ${track.title}`}><img src={track.cover || fallbackCover} alt=""/></button><div className="track-meta"><strong>{track.title}</strong><span>{track.artist} · {track.genre}</span></div><div className="track-stats"><span>Track</span><button className="mini-play" onClick={() => onPlayTrack(track)} aria-label={`${trackIsPlaying ? 'Pause' : 'Play'} ${track.title}`}>{trackIsPlaying ? <Pause size={15}/> : <Play size={15}/>}</button></div></article>;
+        return <article className="track-row" key={track.id}><span className="track-number">{String(index + 1).padStart(2, '0')}</span><button className="track-art" onClick={() => onPlayTrack(track)} aria-label={`Play ${track.title}`}><img src={track.cover || fallbackCover} alt=""/></button><div className="track-meta"><strong>{track.title}</strong><span>{track.artist} · {track.genre}</span></div></article>;
       })}</section> : <p className="muted">{emptyMessage}</p>}
     </section>
   );
@@ -83,217 +83,57 @@ export default function App() {
   const [audioUrl, setAudioUrl] = useState('');
   const [playbackTime, setPlaybackTime] = useState(0);
   const [audioDuration, setAudioDuration] = useState(0);
-  const [likedTracks, setLikedTracks] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('junubify-liked-tracks') || '{}'); } catch { return {}; }
-  });
+  const [likedTracks, setLikedTracks] = useState(() => { try { return JSON.parse(localStorage.getItem('junubify-liked-tracks') || '{}'); } catch { return {}; } });
   const audioRef = useRef(null);
 
-  const notify = (message) => {
-    setNotice(message);
-    window.clearTimeout(notify.timeout);
-    notify.timeout = window.setTimeout(() => setNotice(''), 5000);
-  };
+  const notify = (message) => { setNotice(message); window.clearTimeout(notify.timeout); notify.timeout = window.setTimeout(() => setNotice(''), 5000); };
 
   useEffect(() => {
     if (!supabase) return undefined;
-    supabase.auth.getSession().then(({ data, error }) => {
-      if (error) notify(error.message);
-      setSession(data?.session ?? null);
-    });
+    supabase.auth.getSession().then(({ data, error }) => { if (error) notify(error.message); setSession(data?.session ?? null); });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, nextSession) => setSession(nextSession));
     return () => subscription.unsubscribe();
   }, []);
 
   const refreshCatalog = async () => {
     if (!supabaseConfigured) return;
-    setLoadingCatalog(true);
-    setCatalogError('');
-    try {
-      const publicTracks = await fetchPublishedTracks();
-      setTracks(publicTracks);
-      if (session?.user?.id) setArtistTracks(await fetchArtistTracks(session.user.id));
-      else setArtistTracks([]);
-    } catch (error) {
-      setCatalogError(error.message || 'Could not load the catalog.');
-    } finally {
-      setLoadingCatalog(false);
-    }
+    setLoadingCatalog(true); setCatalogError('');
+    try { const publicTracks = await fetchPublishedTracks(); setTracks(publicTracks); if (session?.user?.id) setArtistTracks(await fetchArtistTracks(session.user.id)); else setArtistTracks([]); }
+    catch (error) { setCatalogError(error.message || 'Could not load the catalog.'); }
+    finally { setLoadingCatalog(false); }
   };
   useEffect(() => { refreshCatalog(); }, [session?.user?.id]);
 
-  const handleFile = (file) => {
-    if (!file) return;
-    if (!/\.(mp3|wav|m4a|ogg|aac|flac)$/i.test(file.name) && !file.type.startsWith('audio/')) return notify('Choose an audio file such as MP3, WAV, M4A, OGG, AAC, or FLAC.');
-    if (file.size > 50 * 1024 * 1024) return notify('Audio file must be 50 MB or smaller.');
-    setSelectedFile(file);
-  };
-
-  const requestSignIn = async (event) => {
-    event.preventDefault();
-    if (!supabase) return notify('Add the Supabase project URL and anon key to enable artist sign-in.');
-    const { error } = await supabase.auth.signInWithOtp({ email: email.trim(), options: { emailRedirectTo: window.location.origin } });
-    if (error) notify(error.message);
-    else notify('Check your email for a secure sign-in link.');
-  };
-
-  const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) notify(error.message);
-    else notify('You have signed out.');
-  };
-
-  const publishTrack = async (event) => {
-    event.preventDefault();
-    if (!session?.user) return notify('Sign in to submit a track.');
-    if (!selectedFile) return notify('Choose an audio file before submitting.');
-    if (!rightsConfirmed) return notify('Confirm that you own or control the rights to this audio.');
-    setSubmitting(true);
-    try {
-      const submission = await submitTrack({ file: selectedFile, form, artistId: session.user.id });
-      setArtistTracks((current) => [submission, ...current]);
-      setForm(emptyForm);
-      setSelectedFile(null);
-      setRightsConfirmed(false);
-      event.currentTarget.reset();
-      notify('Track uploaded securely and submitted for review. It will appear in Discover after approval.');
-    } catch (error) {
-      notify(error.message || 'Track upload failed. Please try again.');
-    } finally {
-      setSubmitting(false);
-    }
-  };
+  const handleFile = (file) => { if (!file) return; if (!/\.(mp3|wav|m4a|ogg|aac|flac)$/i.test(file.name) && !file.type.startsWith('audio/')) return notify('Choose an audio file such as MP3, WAV, M4A, OGG, AAC, or FLAC.'); if (file.size > 50 * 1024 * 1024) return notify('Audio file must be 50 MB or smaller.'); setSelectedFile(file); };
+  const requestSignIn = async (event) => { event.preventDefault(); if (!supabase) return notify('Add the Supabase project URL and anon key to enable artist sign-in.'); const { error } = await supabase.auth.signInWithOtp({ email: email.trim(), options: { emailRedirectTo: window.location.origin } }); if (error) notify(error.message); else notify('Check your email for a secure sign-in link.'); };
+  const signOut = async () => { const { error } = await supabase.auth.signOut(); if (error) notify(error.message); else notify('You have signed out.'); };
+  const publishTrack = async (event) => { event.preventDefault(); if (!session?.user) return notify('Sign in to submit a track.'); if (!selectedFile) return notify('Choose an audio file before submitting.'); if (!rightsConfirmed) return notify('Confirm that you own or control the rights to this audio.'); setSubmitting(true); try { const submission = await submitTrack({ file: selectedFile, form, artistId: session.user.id }); setArtistTracks((current) => [submission, ...current]); setForm(emptyForm); setSelectedFile(null); setRightsConfirmed(false); event.currentTarget.reset(); notify('Track uploaded securely and submitted for review. It will appear in Discover after approval.'); } catch (error) { notify(error.message || 'Track upload failed. Please try again.'); } finally { setSubmitting(false); } };
 
   const catalogTracks = tracks.length ? tracks : featuredTracks;
   const playerDuration = audioDuration;
   const matchesQuery = (track) => `${track.title} ${track.artist} ${track.genre}`.toLowerCase().includes(query.toLowerCase());
-  const selectedPlaylistTracks = selectedPlaylist
-    ? catalogTracks.filter((track) => track.genre.toLowerCase().includes(selectedPlaylist.genre.toLowerCase()) && matchesQuery(track))
-    : [];
-  const selectedGenreTracks = selectedGenre
-    ? catalogTracks.filter((track) => track.genre.toLowerCase().includes(selectedGenre.filter.toLowerCase()) && matchesQuery(track))
-    : [];
-  const visibleTracks = catalogTracks.filter((track) => {
-    return matchesQuery(track) && (!genreFilter || track.genre.toLowerCase().includes(genreFilter.toLowerCase()));
-  });
+  const selectedPlaylistTracks = selectedPlaylist ? catalogTracks.filter((track) => track.genre.toLowerCase().includes(selectedPlaylist.genre.toLowerCase()) && matchesQuery(track)) : [];
+  const selectedGenreTracks = selectedGenre ? catalogTracks.filter((track) => track.genre.toLowerCase().includes(selectedGenre.filter.toLowerCase()) && matchesQuery(track)) : [];
+  const visibleTracks = catalogTracks.filter((track) => matchesQuery(track) && (!genreFilter || track.genre.toLowerCase().includes(genreFilter.toLowerCase())));
 
-  useEffect(() => {
-    if (!audioUrl || !playing || !audioRef.current) return;
-    audioRef.current.play().catch(() => notify('Playback could not start. Tap play again or check your connection.'));
-  }, [audioUrl, playing]);
+  useEffect(() => { if (!audioUrl || !playing || !audioRef.current) return; audioRef.current.play().catch(() => notify('Playback could not start. Tap play again or check your connection.')); }, [audioUrl, playing]);
+  useEffect(() => { if (audioRef.current) audioRef.current.volume = muted ? 0 : volume; }, [volume, muted]);
 
-  useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.volume = muted ? 0 : volume;
-    }
-  }, [volume, muted]);
-
-  const playTrack = async (track, queuedTracks = []) => {
-    setPlayQueue(queuedTracks);
-    if (playing?.id === track.id && audioRef.current) {
-      if (audioRef.current.paused) audioRef.current.play().catch(() => notify('Could not play this audio file.'));
-      else audioRef.current.pause();
-      return;
-    }
-    try {
-      const url = track.audioPath ? await createTrackAudioUrl(track.audioPath) : track.audioUrl;
-      if (!url) return notify('Audio is not available for this track.');
-      setPlaybackTime(0);
-      setAudioDuration(0);
-      setAudioUrl(url);
-      setPlaying(track);
-      if (window.matchMedia('(max-width: 760px)').matches) setMobilePlayerOpen(true);
-    } catch (error) {
-      notify(error.message || 'Could not create a secure audio playback link.');
-    }
-  };
-
-  const playAllTracks = (tracksToPlay) => {
-    if (!tracksToPlay.length) return;
-    playTrack(tracksToPlay[0], tracksToPlay.slice(1));
-  };
-
-  const advancePlayback = () => {
-    if (repeat && playing) {
-      if (audioRef.current) {
-        audioRef.current.currentTime = 0;
-        audioRef.current.play().catch(() => notify('Could not replay this audio file.'));
-      }
-      return;
-    }
-    if (playQueue.length) {
-      const [nextTrack, ...remainingTracks] = playQueue;
-      playTrack(nextTrack, remainingTracks);
-      return;
-    }
-    if (catalogTracks.length) {
-      const currentIndex = catalogTracks.findIndex((track) => track.id === playing?.id);
-      const nextIndex = shuffle
-        ? Math.floor(Math.random() * catalogTracks.length)
-        : (currentIndex + 1 + catalogTracks.length) % catalogTracks.length;
-      playTrack(catalogTracks[nextIndex], catalogTracks.filter((_, index) => index !== nextIndex));
-    } else {
-      setPlayQueue([]);
-      setPlaying(null);
-      setPlaybackTime(0);
-    }
-  };
-
-  const previousPlayback = () => {
-    if (!catalogTracks.length) return;
-    const currentIndex = catalogTracks.findIndex((track) => track.id === playing?.id);
-    const previousIndex = (currentIndex - 1 + catalogTracks.length) % catalogTracks.length;
-    playTrack(catalogTracks[previousIndex], catalogTracks.slice(previousIndex + 1));
-  };
-
-  const toggleLike = (trackId) => setLikedTracks((current) => {
-    const next = { ...current, [trackId]: !current[trackId] };
-    try { localStorage.setItem('junubify-liked-tracks', JSON.stringify(next)); } catch { /* Storage may be disabled. */ }
-    return next;
-  });
-
-  const shareTrack = async (track) => {
-    setShareModalTrack(track);
-  };
-
-  const copyShareLink = async (track) => {
-    const url = `${window.location.origin}/?track=${encodeURIComponent(track.id)}`;
-    try {
-      if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(url);
-        notify('Track link copied to clipboard.');
-      } else {
-        notify(url);
-      }
-      setShareModalTrack(null);
-    } catch {
-      notify('Could not copy the track link.');
-    }
-  };
-
-  const openPlaylist = (playlist, autoplay = false) => {
-    const matching = catalogTracks.filter((track) => track.genre.toLowerCase().includes(playlist.genre.toLowerCase()));
-    if (!matching.length) return notify(`No ${playlist.name} songs are available yet.`);
-    setSelectedGenre(null);
-    setSelectedPlaylist(playlist);
-    setGenreFilter('');
-    setQuery('');
-    if (autoplay) playTrack(matching[0]);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const openGenre = (genre) => {
-    setSelectedPlaylist(null);
-    setSelectedGenre(genre);
-    setQuery('');
-    setGenreFilter('');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  const playTrack = async (track, queuedTracks = []) => { setPlayQueue(queuedTracks); if (playing?.id === track.id && audioRef.current) { if (audioRef.current.paused) audioRef.current.play().catch(() => notify('Could not play this audio file.')); else audioRef.current.pause(); return; } try { const url = track.audioPath ? await createTrackAudioUrl(track.audioPath) : track.audioUrl; if (!url) return notify('Audio is not available for this track.'); setPlaybackTime(0); setAudioDuration(0); setAudioUrl(url); setPlaying(track); if (window.matchMedia('(max-width: 760px)').matches) setMobilePlayerOpen(true); } catch (error) { notify(error.message || 'Could not create a secure audio playback link.'); } };
+  const playAllTracks = (tracksToPlay) => { if (!tracksToPlay.length) return; playTrack(tracksToPlay[0], tracksToPlay.slice(1)); };
+  const advancePlayback = () => { if (repeat && playing) { if (audioRef.current) { audioRef.current.currentTime = 0; audioRef.current.play().catch(() => notify('Could not replay this audio file.')); } return; } if (playQueue.length) { const [nextTrack, ...remainingTracks] = playQueue; playTrack(nextTrack, remainingTracks); return; } if (catalogTracks.length) { const currentIndex = catalogTracks.findIndex((track) => track.id === playing?.id); const nextIndex = shuffle ? Math.floor(Math.random() * catalogTracks.length) : (currentIndex + 1 + catalogTracks.length) % catalogTracks.length; playTrack(catalogTracks[nextIndex], catalogTracks.filter((_, index) => index !== nextIndex)); } else { setPlayQueue([]); setPlaying(null); setPlaybackTime(0); } };
+  const previousPlayback = () => { if (!catalogTracks.length) return; const currentIndex = catalogTracks.findIndex((track) => track.id === playing?.id); const previousIndex = (currentIndex - 1 + catalogTracks.length) % catalogTracks.length; playTrack(catalogTracks[previousIndex], catalogTracks.slice(previousIndex + 1)); };
+  const toggleLike = (trackId) => setLikedTracks((current) => { const next = { ...current, [trackId]: !current[trackId] }; try { localStorage.setItem('junubify-liked-tracks', JSON.stringify(next)); } catch {} return next; });
+  const shareTrack = (track) => setShareModalTrack(track);
+  const copyShareLink = async (track) => { const url = `${window.location.origin}/?track=${encodeURIComponent(track.id)}`; try { if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(url); else notify(url); notify('Track link copied to clipboard.'); setShareModalTrack(null); } catch { notify('Could not copy the track link.'); } };
+  const openPlaylist = (playlist, autoplay = false) => { const matching = catalogTracks.filter((track) => track.genre.toLowerCase().includes(playlist.genre.toLowerCase())); if (!matching.length) return notify(`No ${playlist.name} songs are available yet.`); setSelectedGenre(null); setSelectedPlaylist(playlist); setGenreFilter(''); setQuery(''); if (autoplay) playTrack(matching[0]); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+  const openGenre = (genre) => { setSelectedPlaylist(null); setSelectedGenre(genre); setQuery(''); setGenreFilter(''); window.scrollTo({ top: 0, behavior: 'smooth' }); };
 
   return (
     <div className="app-shell">
       <header className="topbar">
-        <button className="brand" onClick={() => { setSelectedPlaylist(null); setSelectedGenre(null); setTab('discover'); }} aria-label="Junubify home"><span className="brand-icon"><Radio size={21}/></span><span><b>JUNUBIFY</b><small>SOUTH SUDAN BEATS</small></span></button>
-        <input className="search" value={query} onChange={(event) => { setQuery(event.target.value); setGenreFilter(''); }} placeholder="Search tracks or artists" aria-label="Search tracks or artists" />
+        <button className="brand" onClick={() => { setSelectedPlaylist(null); setSelectedGenre(null); setTab('discover'); }} aria-label="Junubify home"><span className="brand-icon"><Radio size={20}/></span><span><b>Junubify</b><small>SOUTH SUDAN BEATS</small></span></button>
+        <input className="search" value={query} onChange={(event) => { setQuery(event.target.value); setGenreFilter(''); }} placeholder="Search tracks or artists" aria-label="Search tracks or artists"/>
         <nav className="nav-tabs" aria-label="Main navigation">
           <button className={tab === 'discover' ? 'active' : ''} onClick={() => { setSelectedPlaylist(null); setSelectedGenre(null); setTab('discover'); }}><Headphones size={17}/> Discover</button>
           <button className={tab === 'library' ? 'active' : ''} onClick={() => setTab('library')}><Heart size={17}/> Library</button>
@@ -303,126 +143,36 @@ export default function App() {
         </nav>
       </header>
       <main className="content">
-        {tab === 'discover' && (selectedPlaylist ? <PlaylistDetail playlist={selectedPlaylist} tracks={selectedPlaylistTracks} playing={playing} isPlaying={Boolean(audioRef.current && !audioRef.current.paused)} onBack={() => setSelectedPlaylist(null)} onPlayTrack={playTrack} emptyMessage={query ? 'No songs match your search.' : 'No songs are available in this playlist yet.'}/> : selectedGenre ? <PlaylistDetail playlist={selectedGenre} tracks={selectedGenreTracks} playing={playing} isPlaying={Boolean(audioRef.current && !audioRef.current.paused)} onBack={() => setSelectedGenre(null)} onPlayTrack={playTrack} emptyMessage={query ? 'No songs match your search.' : 'No songs are available in this genre yet.'} kind="genre"/> : <>
-          <section className="hero trend-hero"><div className="hero-copy"><span className="eyebrow"><AudioLines size={14}/> FEATURED RELEASE</span><h1>O.G. by Chief Butee</h1><p>Listen to the featured release from Chief Butee.</p><div className="hero-actions"><button className="button primary hero-play" onClick={() => playAllTracks(visibleTracks)} disabled={!visibleTracks.length}><Play size={16} fill="currentColor"/> Play All <span>{visibleTracks.length}</span></button><button className="button secondary" onClick={() => setTab('studio')}><Upload size={16}/> Upload Song</button></div></div><div className="hero-badge"><BadgeCheck size={18}/> A home for local artists</div></section>
-
-          <section className="featured-artist panel"><img src={ogCoverUrl} alt="Junubify cover artwork"/><div className="featured-artist-copy"><span className="eyebrow"><BadgeCheck size={14}/> FEATURED ARTIST</span><h2>Chief Butee</h2><p>Listen to the featured release, O.G.</p><button className="button secondary" onClick={() => { setQuery('Chief Butee'); document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth' }); }}><Headphones size={15}/> Explore artist</button></div><div className="artist-sparkle"><Sparkles size={24}/></div></section>
-
-          <section className="genre-section"><div className="section-heading"><div><span className="eyebrow">EXPLORE</span><h2><Compass size={22}/> Explore Juba Genres</h2></div></div><div className="genre-grid">{genres.map((genre) => { const matchingTracks = catalogTracks.filter((track) => track.genre.toLowerCase().includes(genre.filter.toLowerCase())); const expanded = expandedGenre === genre.filter; return <article key={genre.name} className={`genre-card ${genre.color} ${expanded ? 'expanded' : ''}`}><button className="genre-toggle" style={{ backgroundImage: `linear-gradient(180deg, rgba(7, 14, 10, .2), rgba(7, 14, 10, .9)), url(${genre.cover})` }} aria-expanded={expanded} onClick={() => setExpandedGenre((current) => current === genre.filter ? null : genre.filter)}><strong>{genre.name}</strong><span>{matchingTracks.length} {matchingTracks.length === 1 ? 'track' : 'tracks'} · {expanded ? 'Hide songs' : 'View songs'}</span></button>{expanded && <><div className="genre-song-list">{matchingTracks.length ? matchingTracks.slice(0, 3).map((track) => <button key={track.id} className="genre-song" onClick={() => playTrack(track)} aria-label={`Play ${track.title} by ${track.artist}`}><span className="genre-song-copy"><strong>{track.title}</strong><small>{track.artist} · {track.genre}</small></span><Play size={15} fill="currentColor"/></button>) : <p className="genre-empty">No songs available yet.</p>}</div><button className="genre-explore" onClick={() => openGenre(genre)} aria-label={`Explore ${genre.name}`}><Compass size={14}/> Explore genre <ArrowRight size={14}/></button></>}</article>; })}</div></section>
-
-          <section className="featured-playlists"><div className="section-heading compact-heading"><div><span className="eyebrow">CURATED FOR YOU</span><h2><Sparkles size={22}/> Featured release</h2></div></div><div className="playlist-grid">{featuredPlaylists.map((playlist) => { const count = catalogTracks.filter((track) => track.genre.toLowerCase().includes(playlist.genre.toLowerCase())).length; return <article key={playlist.id} className={`playlist-card ${playlist.accent}`}><div className="playlist-art" style={{ backgroundImage: `url(${playlist.cover})` }}><span className="playlist-tag">{count} {count === 1 ? 'track' : 'tracks'}</span><button className="playlist-play" onClick={() => openPlaylist(playlist, true)} aria-label={`Play ${playlist.name}`}><Play size={18} fill="currentColor"/></button></div><div className="playlist-body"><strong>{playlist.name}</strong><small>{playlist.subtitle}</small><button className="button secondary playlist-button" onClick={() => openPlaylist(playlist)}>Open release</button></div></article>; })}</div></section>
-
-          <section className="trending-section" id="catalog"><div className="now-trending-ticker" aria-label="Featured track: O.G. by Chief Butee"><span>♪ NOW TRENDING · O.G. · CHIEF BUTEE</span></div><div className="section-heading"><div><span className="eyebrow">THE JUNUBIFY CATALOG</span><h2><TrendingUp size={22}/> Trending tracks in Juba</h2></div><span className="muted">{genreFilter && <button className="clear-filter" onClick={() => setGenreFilter('')}>Clear genre · </button>}{visibleTracks.length} tracks</span></div><div className="hot-badge"><span aria-hidden="true">✦</span> HOT RIGHT NOW</div>{!tracks.length && <p className="catalog-status">Featured release · connect Supabase for the live catalog</p>}{loadingCatalog && <p className="muted catalog-status">Loading the published catalog…</p>}{catalogError && <div className="notice-box"><b>Catalog unavailable</b><p>{catalogError}</p><button className="button secondary" onClick={refreshCatalog}>Try again</button></div>}<section className="track-list">{visibleTracks.map((track, index) => <article className="track-row" key={track.id}><span className="track-number">{String(index + 1).padStart(2, '0')}</span><button className="track-art" onClick={() => playTrack(track)} aria-label={`Play ${track.title}`}><img src={track.cover || fallbackCover} alt=""/></button><div className="track-meta"><strong>{track.title}</strong><span>{track.artist} · {track.genre}</span></div><div className="track-stats"><span><Heart size={14}/> {Number(track.plays || 0).toLocaleString()}</span><button className="mini-play" onClick={() => playTrack(track)} aria-label={`Play ${track.title}`}>{playing?.id === track.id && audioRef.current && !audioRef.current.paused ? <Pause size={15}/> : <Play size={15}/>}</button><button className={`track-action ${likedTracks[track.id] ? 'liked' : ''}`} onClick={() => toggleLike(track.id)} aria-label={likedTracks[track.id] ? `Unlike ${track.title}` : `Like ${track.title}`}><Heart size={17} fill={likedTracks[track.id] ? 'currentColor' : 'none'}/></button><button className="track-action" onClick={() => shareTrack(track)} aria-label={`Share ${track.title}`}><Upload size={17}/></button></div></article>)}</section>{!visibleTracks.length && <div className="panel empty-catalog"><Music2 size={26}/><b>No tracks match this filter.</b><span>Choose another genre or clear your search.</span></div>}</section>
-          <section className="upload-promo"><div><span className="eyebrow">ARE YOU AN ARTIST?</span><h2>Bring your sound to Junubify.</h2><p>Submit your music securely for review in Artist Studio.</p></div><button className="button primary" onClick={() => setTab('studio')}><Upload size={16}/> Open studio</button></section>
-        </>)}
-
-        {tab === 'library' && <>
-          <section className="section-heading library-heading">
-            <div><span className="eyebrow">YOUR MUSIC</span><h1><Heart size={22}/> Liked songs</h1><p className="muted">Tracks you saved while listening.</p></div>
+        {tab === 'discover' && (selectedPlaylist ? <PlaylistDetail playlist={selectedPlaylist} tracks={selectedPlaylistTracks} playing={playing} isPlaying={Boolean(audioRef.current && !audioRef.current.paused)} onBack={() => setSelectedPlaylist(null)} onPlayTrack={(track) => playTrack(track, selectedPlaylistTracks)} emptyMessage="No songs in this playlist match your search."/> : selectedGenre ? <PlaylistDetail playlist={selectedGenre} tracks={selectedGenreTracks} playing={playing} isPlaying={Boolean(audioRef.current && !audioRef.current.paused)} onBack={() => setSelectedGenre(null)} onPlayTrack={(track) => playTrack(track, selectedGenreTracks)} emptyMessage="No songs in this genre match your search." kind="genre"/> : <>
+          <section className="home-intro panel" aria-labelledby="home-intro-title">
+            <div className="home-intro-content">
+              <span className="home-intro-kicker"><AudioLines size={17}/> MUSIC FROM HOME</span>
+              <h1 id="home-intro-title">South Sudan&apos;s sound,<br/><span>all in one place.</span></h1>
+              <p>Discover emerging voices and hometown favorites from Juba and beyond.</p>
+              <button className="home-intro-play" onClick={() => playAllTracks(catalogTracks)}><Play size={21} fill="currentColor"/> Play a track</button>
+            </div>
           </section>
-          {catalogTracks.filter((track) => likedTracks[track.id]).length ? <section className="track-list library-track-list">
-            {catalogTracks.filter((track) => likedTracks[track.id]).map((track, index) => <article className="track-row" key={track.id}>
-              <span className="track-number">{String(index + 1).padStart(2, '0')}</span>
-              <button className="track-art" onClick={() => playTrack(track)} aria-label={`Play ${track.title}`}><img src={track.cover || fallbackCover} alt=""/></button>
-              <div className="track-meta"><strong>{track.title}</strong><span>{track.artist} · {track.genre}</span></div>
-              <div className="track-stats">
-                <button className="mini-play" onClick={() => playTrack(track)} aria-label={`Play ${track.title}`}>{playing?.id === track.id && audioRef.current && !audioRef.current.paused ? <Pause size={15}/> : <Play size={15}/>}</button>
-                <button className="track-action liked" onClick={() => toggleLike(track.id)} aria-label={`Unlike ${track.title}`}><Heart size={17} fill="currentColor"/></button>
-                <button className="track-action" onClick={() => shareTrack(track)} aria-label={`Share ${track.title}`}><Upload size={17}/></button>
-              </div>
-            </article>)}
-          </section> : <section className="panel library-empty"><Heart size={30}/><h2>No liked songs yet</h2><p className="muted">Tap the heart beside a track to save it here.</p><button className="button primary" onClick={() => setTab('discover')}>Discover music</button></section>}
-        </>}
 
-        {tab === 'studio' && <><section className="section-heading"><div><span className="eyebrow">ARTIST PORTAL</span><h1>Artist studio</h1><p className="muted">Submit a track for review. Audio is stored privately until approved.</p></div></section>{!supabaseConfigured && <div className="notice-box prominent"><b>Backend setup required</b><p>Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY, then apply the Supabase migrations to enable uploads.</p></div>}{!session ? <section className="panel studio-auth"><h2>Sign in to submit music</h2><p className="muted">We’ll email you a secure sign-in link.</p><form onSubmit={requestSignIn}><label>Email address<input type="email" required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com"/></label><button className="button primary" type="submit">Send sign-in link</button></form></section> : <><div className="studio-account"><span>Signed in as <b>{session.user.email}</b></span><div className="studio-account-actions"><button className="button primary" onClick={() => setPayoutModalOpen(true)}><Wallet size={15}/> Request payout</button><button className="button secondary" onClick={signOut}>Sign out</button></div></div><section className="artist-stat-grid"><article className="panel artist-stat"><span className="eyebrow">TOTAL STREAMS</span><strong>{catalogTracks.reduce((sum, track) => sum + Number(track.plays || 0), 0).toLocaleString()}</strong><small><TrendingUp size={12}/> Live catalog activity</small></article><article className="panel artist-stat"><span className="eyebrow">GROSS EARNINGS</span><strong className="green-value">$0.00</strong><small>Not calculated yet</small></article><article className="panel artist-stat"><span className="eyebrow">AVAILABLE PAYOUT</span><strong>$0.00</strong><small>Provider not connected</small></article><article className="panel artist-stat"><span className="eyebrow">ARTIST STATUS</span><strong className="green-value">{session ? 'Active' : 'Guest'}</strong><small>Rights review required</small></article></section><div className="studio-grid"><form className="panel upload-form" onSubmit={publishTrack}><h2><Upload size={19}/> Submit a song</h2><p className="muted">MP3, WAV, M4A, OGG, AAC, or FLAC · up to 50 MB</p><label>Song title<input required maxLength="100" value={form.title} onChange={(event) => setForm({...form, title: event.target.value})} placeholder="e.g. Nile Sunset"/></label><label>Artist name<input required maxLength="100" value={form.artist} onChange={(event) => setForm({...form, artist: event.target.value})} placeholder="Your artist name"/></label><label>Genre<select value={form.genre} onChange={(event) => setForm({...form, genre: event.target.value})}><option>Afrobeat</option><option>Dancehall</option><option>Hip-Hop</option><option>Traditional &amp; Cultural</option><option>Gospel &amp; Choir</option><option>Afro-Pop</option></select></label><label>Album / release name<input maxLength="100" value={form.album} onChange={(event) => setForm({...form, album: event.target.value})} placeholder="Single"/></label><label>Cover image URL <span className="muted">(optional)</span><input type="url" value={form.cover} onChange={(event) => setForm({...form, cover: event.target.value})} placeholder="https://"/></label><label className="file-picker"><Music2 size={21}/><span><b>{selectedFile ? selectedFile.name : 'Choose audio file'}</b><small>{selectedFile ? `${(selectedFile.size / 1024 / 1024).toFixed(1)} MB` : 'Audio file · up to 50 MB'}</small></span><input type="file" accept="audio/*,.mp3,.wav,.m4a,.ogg,.aac,.flac" onChange={(event) => handleFile(event.target.files?.[0])}/></label><label className="rights-confirm"><input type="checkbox" checked={rightsConfirmed} onChange={(event) => setRightsConfirmed(event.target.checked)}/><span>I confirm that I own or control the rights to this audio.</span></label><button className="button primary full" type="submit" disabled={submitting || !supabaseConfigured}><Upload size={16}/>{submitting ? 'Uploading securely…' : 'Submit for review'}</button><p className="fine-print">Submissions remain private until approved.</p></form><section className="panel catalog-panel"><div className="catalog-title"><h2>Your submissions</h2><button className="button secondary" onClick={refreshCatalog}>Refresh</button></div>{artistTracks.length ? artistTracks.map((track) => <div className="mini-track" key={track.id}><img src={track.cover} alt=""/><div><strong>{track.title}</strong><span>{track.artist} · {track.status.replace('_', ' ')}</span></div>{track.status === 'published' && <button className="mini-play" onClick={() => playTrack(track)} aria-label={`Play ${track.title}`}><Play size={14}/></button>}</div>) : <div className="catalog-empty"><div className="empty-icon"><Music2 size={22}/></div><p><strong>Your submissions will appear here</strong></p><small>Submit a track to add it to your private artist catalog.</small></div>}</section></div></>}</>}
+          <section className="hero trend-hero"><div className="hero-copy"><span className="eyebrow"><AudioLines size={14}/> FEATURED RELEASE</span><h1>O.G. by Chief Butee</h1><p>Listen to the featured release and discover the latest from South Sudan.</p><div className="hero-actions"><button className="button primary" onClick={() => playAllTracks(catalogTracks)}><Play size={16} fill="currentColor"/> Play now</button><button className="button secondary" onClick={() => openPlaylist(featuredPlaylists[0])}><Music2 size={16}/> View release</button></div></div></section>
 
-        {tab === 'monetize' && <><section className="section-heading"><div><span className="eyebrow">CREATOR ECONOMY</span><h1>Monetization</h1><p className="muted">Plans and royalty information. Payments are not active.</p></div></section><div className="notice-box prominent"><b>Payments are not live yet</b><p>{paymentSetupMessage}</p></div><section className="plan-grid"><article className="panel plan-card"><span className="eyebrow">FOR LISTENERS</span><h2>Premium Fan</h2><div className="price">$2.99 <small>/ month · ~1,500 SSP</small></div><ul><li>Unlimited ad-free streaming</li><li>Offline listening in the app</li><li>High-quality audio</li><li>Direct support for local artists</li></ul><button className="button primary plan-button" onClick={() => setSubscriptionModalOpen(true)}>Subscribe via m-GURUSH</button></article><article className="panel plan-card"><span className="eyebrow">FOR ARTISTS</span><h2>Pro Creator</h2><div className="price">70% <small>proposed share</small></div><ul><li>Unlimited album uploads</li><li>Proposed royalty revenue split</li><li>Instant payout eligibility</li><li>Listener analytics</li></ul><button className="button primary plan-button" onClick={() => setSubscriptionModalOpen(true)}>Upgrade to Pro</button></article></section><section className="panel payment-methods"><span className="eyebrow">SUPPORTED METHODS IN SOUTH SUDAN</span><div><b>m-GURUSH</b><b>MTN MoMo</b><b>Zain Cash</b><b>Visa / Mastercard</b></div></section><section className="panel payout-panel"><div><span className="eyebrow">ROYALTIES &amp; PAYOUTS</span><h2>Artist earnings</h2><p className="muted">No earnings are calculated or transferred yet.</p></div><Wallet size={28}/></section></>}
+          <section className="featured-artist panel"><img src={ogCoverUrl} alt="Junubify cover artwork"/><div className="featured-artist-copy"><span className="eyebrow"><BadgeCheck size={14}/> FEATURED ARTIST</span><h2>Chief Butee</h2><p>Fresh South Sudanese music, now featured on Junubify.</p><button className="button secondary" onClick={() => openPlaylist(featuredPlaylists[0])}>Explore artist</button></div><Sparkles className="artist-sparkle" size={18}/></section>
 
-        {tab === 'download' && <section className="app-download panel"><div className="download-icon"><Smartphone size={42}/></div><span className="eyebrow">LISTEN WHEREVER YOU ARE</span><h1>Get Junubify for Android &amp; iOS</h1><p>Use the installable web app to keep Junubify close. Native store downloads will be linked once the apps are published.</p><div className="store-buttons"><div className="store-placeholder"><Download size={22}/><span><small>ANDROID APP</small><b>Coming soon</b></span></div><div className="store-placeholder"><Download size={22}/><span><small>APPLE APP</small><b>Coming soon</b></span></div></div><div className="qr-placeholder" aria-label="Decorative QR-style pattern" role="img">{Array.from({ length: 64 }, (_, index) => <i key={index} className={(index * 7 + index % 3) % 4 === 0 ? 'qr-lit' : ''}/>)}</div><p className="muted">To install the current web app, use your browser menu and choose “Add to Home screen”.</p></section>}
+          <section className="genre-section"><div className="section-heading"><div><span className="eyebrow">EXPLORE</span><h2><Compass size={22}/> Explore Juba Genres</h2></div></div><div className="genre-grid">{genres.map((genre) => { const genreTracks = catalogTracks.filter((track) => track.genre.toLower().includes(genre.filter.toLower())); const expanded = expandedGenre === genre.name; return <article className={`genre-card ${genre.color} ${expanded ? 'expanded' : ''}`} key={genre.name}><button className="genre-toggle" onClick={() => setExpandedGenre(expanded ? null : genre.name)}><strong>{genre.name}</strong><span>{genre.subtitle}</span></button>{expanded && <><div className="genre-song-list">{genreTracks.length ? genreTracks.slice(0, 3).map((track) => <button className="genre-song" key={track.id} onClick={() => playTrack(track, genreTracks)}><span className="genre-song-copy"><strong>{track.title}</strong><small>{track.artist}</small></span><Play size={13} fill="currentColor"/></button>) : <p className="genre-empty">No tracks yet</p>}</div><button className="genre-explore" onClick={() => openGenre(genre)}>Explore genre <ArrowRight size={14}/></button></>}</article>; })}</div></section>
+
+          <section className="featured-playlists"><div className="section-heading compact-heading"><div><span className="eyebrow">CURATED FOR YOU</span><h2><Sparkles size={22}/> Featured releases</h2></div></div><div className="playlist-grid">{featuredPlaylists.map((playlist) => <article className="playlist-card" key={playlist.id}><div className="playlist-art" style={{ backgroundImage: `url(${playlist.cover})` }}><span className="playlist-tag">{playlist.accent}</span><button className="playlist-play" onClick={() => openPlaylist(playlist, true)} aria-label={`Play ${playlist.name}`}><Play size={17} fill="currentColor"/></button></div><div className="playlist-body"><strong>{playlist.name}</strong><small>{playlist.subtitle}</small><button className="button secondary playlist-button" onClick={() => openPlaylist(playlist)}>View release</button></div></article>)}</div></section>
+
+          <section className="trending-section" id="catalog"><div className="now-trending-ticker" aria-label="Featured track: O.G. by Chief Butee"><span>♪ NOW TRENDING · O.G. · CHIEF BUTEE</span></div><div className="section-heading"><div><span className="eyebrow">DISCOVER</span><h2>Now trending</h2></div>{genreFilter && <button className="clear-filter" onClick={() => setGenreFilter('')}>Clear filter</button>}</div>{loadingCatalog && <p className="catalog-status muted">Loading catalog…</p>}{catalogError && <p className="catalog-status muted">{catalogError}</p>}<section className="track-list">{visibleTracks.map((track, index) => <article className="track-row" key={track.id}><span className="track-number">{String(index + 1).padStart(2, '0')}</span><button className="track-art" onClick={() => playTrack(track, visibleTracks)} aria-label={`Play ${track.title}`}><img src={track.cover || fallbackCover} alt=""/></button><div className="track-meta"><strong>{track.title}</strong><span>{track.artist} · {track.genre}</span></div><div className="track-stats"><span>{track.plays || 0} plays</span><button className="mini-play" onClick={() => playTrack(track, visibleTracks)} aria-label={`Play ${track.title}`}>{playing?.id === track.id && audioRef.current && !audioRef.current.paused ? <Pause size={15}/> : <Play size={15} fill="currentColor"/>}</button><button className={`track-action ${likedTracks[track.id] ? 'liked' : ''}`} onClick={() => toggleLike(track.id)} aria-label="Like track"><Heart size={16} fill={likedTracks[track.id] ? 'currentColor' : 'none'}/></button><button className="track-action" onClick={() => shareTrack(track)} aria-label="Share track"><Share2 size={15}/></button></div></article>)}</section></section>
+
+          <section className="upload-promo"><div><span className="eyebrow">ARE YOU AN ARTIST?</span><h2>Bring your sound to Junubify.</h2><p>Submit your music securely for review in Artist Studio.</p></div><button className="button primary" onClick={() => setTab('studio')}><Upload size={16}/> Submit a track</button></section>
+        </>)}
       </main>
+
       <footer className="player">
-        <button className="player-track" onClick={() => playing && setMobilePlayerOpen(true)} aria-label="Open now playing">
-          {playing ? <><img src={playing.cover || fallbackCover} alt=""/><div><b>{playing.title}</b><span>{playing.artist}</span></div></> : <><span className="player-note"><Music2 size={16}/></span><div><b>Nothing playing</b><span>Pick a track to listen</span></div></>}
-        </button>
-        <audio
-          ref={audioRef}
-          src={audioUrl || undefined}
-          onLoadedMetadata={(event) => setAudioDuration(event.currentTarget.duration)}
-          onTimeUpdate={(event) => setPlaybackTime(event.currentTarget.currentTime)}
-          onEnded={advancePlayback}
-        />
-        {playing && <div className="player-progress" aria-label="Playback controls">
-          <button className={shuffle ? 'player-control active' : 'player-control'} onClick={() => setShuffle((current) => !current)} aria-label="Toggle shuffle"><Radio size={14}/></button>
-          <button className="player-control" onClick={previousPlayback} aria-label="Previous track"><SkipBack size={16}/></button>
-          <span>{formatPlaybackTime(playbackTime)}</span>
-          <input className="seek-control" type="range" min="0" max={playerDuration || 1} value={Math.min(playbackTime, playerDuration || 1)} onChange={(event) => { const nextTime = Number(event.target.value); if (audioRef.current) audioRef.current.currentTime = nextTime; setPlaybackTime(nextTime); }} aria-label="Seek playback"/>
-          <span>{formatPlaybackTime(playerDuration)}</span>
-          <button className="player-control" onClick={advancePlayback} aria-label="Next track"><SkipForward size={16}/></button>
-          <button className={repeat ? 'player-control active' : 'player-control'} onClick={() => setRepeat((current) => !current)} aria-label="Toggle repeat"><Sparkles size={14}/></button>
-        </div>}
-        <div className="player-right-controls">
-          <button className="player-control" onClick={() => setMuted((current) => !current)} aria-label={muted ? 'Unmute' : 'Mute'}>{muted ? <VolumeX size={16}/> : <Volume2 size={16}/>}</button>
-          <input className="volume-control" type="range" min="0" max="1" step="0.05" value={muted ? 0 : volume} onChange={(event) => { setVolume(Number(event.target.value)); setMuted(false); }} aria-label="Volume"/>
-          <button className="mini-play" onClick={() => playing && playTrack(playing)} aria-label="Toggle playback">{playing && audioRef.current && !audioRef.current.paused ? <Pause size={16}/> : <Play size={16}/>}</button>
-        </div>
+        <button className="player-track" onClick={() => playing && setMobilePlayerOpen(true)} aria-label="Open now playing">{playing ? <><img src={playing.cover || fallbackCover} alt=""/><div><b>{playing.title}</b><span>{playing.artist}</span></div></> : <><span className="player-note"><Music2 size={16}/></span><div><b>Nothing playing</b><span>Choose a track</span></div></>}</button>
+        <audio ref={audioRef} src={audioUrl || undefined} onLoadedMetadata={(event) => setAudioDuration(event.currentTarget.duration)} onTimeUpdate={(event) => setPlaybackTime(event.currentTarget.currentTime)} onEnded={advancePlayback}/>
+        {playing && <div className="player-progress"><button className={shuffle ? 'player-control active' : 'player-control'} onClick={() => setShuffle((current) => !current)} aria-label="Toggle shuffle"><Radio size={14}/></button><button className="player-control" onClick={previousPlayback} aria-label="Previous track"><SkipBack size={16}/></button><span>{formatPlaybackTime(playbackTime)}</span><input className="seek-control" type="range" min="0" max={playerDuration || 1} value={Math.min(playbackTime, playerDuration || 1)} onChange={(event) => { const nextTime = Number(event.target.value); if (audioRef.current) audioRef.current.currentTime = nextTime; }}/><span>{formatPlaybackTime(playerDuration)}</span><button className="player-control" onClick={advancePlayback} aria-label="Next track"><SkipForward size={16}/></button><button className={repeat ? 'player-control active' : 'player-control'} onClick={() => setRepeat((current) => !current)} aria-label="Toggle repeat"><Sparkles size={14}/></button></div>}
+        <div className="player-right-controls"><button className="player-control" onClick={() => setMuted((current) => !current)} aria-label={muted ? 'Unmute' : 'Mute'}>{muted ? <VolumeX size={16}/> : <Volume2 size={16}/>}</button><input className="volume-control" type="range" min="0" max="1" step="0.05" value={muted ? 0 : volume} onChange={(event) => { setVolume(Number(event.target.value)); setMuted(false); }} aria-label="Volume"/><button className="mini-play" onClick={() => playing && playTrack(playing)} aria-label="Toggle playback">{playing && audioRef.current && !audioRef.current.paused ? <Pause size={16}/> : <Play size={16} fill="currentColor"/>}</button></div>
       </footer>
-      {mobilePlayerOpen && playing && <section className="mobile-now-playing" role="dialog" aria-modal="true" aria-label={`Now playing ${playing.title}`}>
-        <div className="mobile-now-playing-top">
-          <button className="mobile-player-back" onClick={() => setMobilePlayerOpen(false)} aria-label="Close now playing"><ArrowLeft size={20}/></button>
-          <span>NOW PLAYING</span>
-          <button className="mobile-player-more" onClick={() => shareTrack(playing)} aria-label="Share track"><Upload size={18}/></button>
-        </div>
-        <img className="mobile-now-playing-art" src={playing.cover || fallbackCover} alt={`${playing.title} artwork`}/>
-        <div className="mobile-now-playing-meta">
-          <div><h1>{playing.title}</h1><p>{playing.artist}</p></div>
-          <button className={`mobile-like ${likedTracks[playing.id] ? 'liked' : ''}`} onClick={() => toggleLike(playing.id)} aria-label={likedTracks[playing.id] ? 'Unlike track' : 'Like track'}><Heart size={20} fill={likedTracks[playing.id] ? 'currentColor' : 'none'}/></button>
-        </div>
-        <div className="mobile-progress"><progress max={playerDuration || 1} value={playerDuration ? Math.min(playbackTime, playerDuration) : 0}/><div><span>{formatPlaybackTime(playbackTime)}</span><span>{formatPlaybackTime(playerDuration)}</span></div></div>
-        <div className="mobile-playback-controls">
-          <button aria-label="Previous track" onClick={previousPlayback}><ArrowLeft size={22}/></button>
-          <button className="mobile-main-play" onClick={() => playTrack(playing)} aria-label="Toggle playback">{audioRef.current && !audioRef.current.paused ? <Pause size={28} fill="currentColor"/> : <Play size={28} fill="currentColor"/>}</button>
-          <button aria-label="Next track" onClick={advancePlayback}><ArrowRight size={22}/></button>
-        </div>
-      </section>}
-      {shareModalTrack && <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setShareModalTrack(null); }}>
-        <section className="modal-card" role="dialog" aria-modal="true" aria-label="Share track">
-          <button className="modal-close" onClick={() => setShareModalTrack(null)} aria-label="Close share dialog"><X size={18}/></button>
-          <span className="eyebrow">SHARE MUSIC</span><h2>Share to social media</h2>
-          <div className="modal-track"><img src={shareModalTrack.cover || fallbackCover} alt=""/><div><strong>{shareModalTrack.title}</strong><span>{shareModalTrack.artist}</span></div></div>
-          <div className="share-grid">
-            <button onClick={() => { notify('Shared to WhatsApp.'); setShareModalTrack(null); }}>WhatsApp</button>
-            <button onClick={() => { notify('Shared to Instagram.'); setShareModalTrack(null); }}>Instagram</button>
-            <button onClick={() => { notify('Shared to TikTok.'); setShareModalTrack(null); }}>TikTok</button>
-            <button onClick={() => { notify('Shared to Facebook.'); setShareModalTrack(null); }}>Facebook</button>
-          </div>
-          <button className="button secondary full" onClick={() => copyShareLink(shareModalTrack)}><Copy size={16}/> Copy direct link</button>
-        </section>
-      </div>}
-      {payoutModalOpen && <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setPayoutModalOpen(false); }}>
-        <section className="modal-card" role="dialog" aria-modal="true" aria-label="Request payout">
-          <button className="modal-close" onClick={() => setPayoutModalOpen(false)} aria-label="Close payout dialog"><X size={18}/></button>
-          <span className="eyebrow">ARTIST ROYALTIES</span><h2>Request payout</h2>
-          <p className="muted">Choose a mobile wallet provider. No payout will be sent until a provider is connected.</p>
-          <form className="modal-form" onSubmit={(event) => { event.preventDefault(); if (!phoneNumber.trim()) return notify('Enter a mobile phone number.'); setPayoutSuccess(true); window.setTimeout(() => { setPayoutSuccess(false); setPayoutModalOpen(false); notify('Payout is not active. Your request was not submitted.'); }, 900); }}>
-            <label>Mobile money provider<select value={paymentProvider} onChange={(event) => setPaymentProvider(event.target.value)}><option value="m-gurush">m-GURUSH</option><option value="momo">MTN MoMo</option><option value="zain">Zain Cash</option></select></label>
-            <label>Phone number (+211)<input type="tel" value={phoneNumber} onChange={(event) => setPhoneNumber(event.target.value)} placeholder="+211 920 000 000"/></label>
-            <div className="payout-summary"><span>Withdrawable balance<b>$0.00</b></span><span>Processing fee<b>$0.00</b></span><span>You receive<b>$0.00 USD</b></span></div>
-            <button className="button primary full" type="submit" disabled={payoutSuccess}>{payoutSuccess ? 'Checking provider…' : 'Confirm payout request'}</button>
-          </form>
-        </section>
-      </div>}
-      {subscriptionModalOpen && <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setSubscriptionModalOpen(false); }}>
-        <section className="modal-card" role="dialog" aria-modal="true" aria-label="Checkout subscription">
-          <button className="modal-close" onClick={() => setSubscriptionModalOpen(false)} aria-label="Close checkout"><X size={18}/></button>
-          <span className="eyebrow">CHECKOUT</span><h2>Subscription payment</h2>
-          <p className="muted">Payments are not active yet. Configure a secure provider before accepting money.</p>
-          <form className="modal-form" onSubmit={(event) => { event.preventDefault(); if (!checkoutPhone.trim()) return notify('Enter a mobile money phone number.'); notify('Checkout is unavailable until a payment provider is connected.'); setSubscriptionModalOpen(false); }}>
-            <label>Mobile money provider<select value={paymentProvider} onChange={(event) => setPaymentProvider(event.target.value)}><option value="m-gurush">m-GURUSH</option><option value="momo">MTN MoMo</option><option value="zain">Zain Cash</option></select></label>
-            <label>Phone number (+211)<input type="tel" value={checkoutPhone} onChange={(event) => setCheckoutPhone(event.target.value)} placeholder="+211 920 000 000"/></label>
-            <button className="button primary full" type="submit">Continue securely</button>
-          </form>
-        </section>
-      </div>}
       {notice && <div className="toast" role="status">{notice}</div>}
     </div>
   );
