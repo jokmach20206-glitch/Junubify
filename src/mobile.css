@@ -1,3 +1,14 @@
+
+/* Mobile-specific overrides; shared component styling lives in styles.css. */
+@media (max-width: 520px) {
+  .track-row { grid-template-columns: 18px 54px minmax(0, 1fr); }
+  .track-stats { grid-column: 3; justify-content: flex-start; gap: 7px; }
+  .track-stats span { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .now-trending-ticker span { animation: none; }
+
 /* Mobile layout: retain all primary destinations in a compact, scroll-safe header. */
 .hero + .section-heading h2 {
   font-size: clamp(28px, 3vw, 34px);
@@ -242,4 +253,5 @@
   .player-progress { flex-wrap: nowrap; }
   .player-progress .player-control:nth-of-type(1), .player-progress .player-control:nth-of-type(4) { display: none; }
   .modal-card { padding: 20px 16px; }
+
 }
