@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, ArrowRight, AudioLines, BadgeCheck, CircleDollarSign, Compass, Download, Headphones, Heart, Music2, Pause, Play, Radio, Smartphone, Sparkles, TrendingUp, Upload, Wallet } from 'lucide-react';
+import { ArrowLeft, ArrowRight, AudioLines, BadgeCheck, CircleDollarSign, Compass, Copy, Download, Headphones, Heart, Music2, Pause, Play, Radio, Share2, SkipBack, SkipForward, Smartphone, Sparkles, TrendingUp, Upload, Volume2, VolumeX, Wallet, X } from 'lucide-react';
 import { supabase, supabaseConfigured } from './lib/supabase.js';
 import { createTrackAudioUrl, fetchArtistTracks, fetchPublishedTracks, submitTrack } from './lib/catalog.js';
 import ogAudioUrl from '../CHIEF BUTEE - OG.mp3';
@@ -50,6 +50,18 @@ function PlaylistDetail({ playlist, tracks, playing, isPlaying, onBack, onPlayTr
 
 export default function App() {
   const [tab, setTab] = useState('discover');
+  const [mobilePlayerOpen, setMobilePlayerOpen] = useState(false);
+  const [shareModalTrack, setShareModalTrack] = useState(null);
+  const [payoutModalOpen, setPayoutModalOpen] = useState(false);
+  const [subscriptionModalOpen, setSubscriptionModalOpen] = useState(false);
+  const [checkoutPhone, setCheckoutPhone] = useState('');
+  const [paymentProvider, setPaymentProvider] = useState('m-gurush');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [payoutSuccess, setPayoutSuccess] = useState(false);
+  const [shuffle, setShuffle] = useState(false);
+  const [repeat, setRepeat] = useState(false);
+  const [volume, setVolume] = useState(0.8);
+  const [muted, setMuted] = useState(false);
   const [tracks, setTracks] = useState([]);
   const [artistTracks, setArtistTracks] = useState([]);
   const [query, setQuery] = useState('');
@@ -169,6 +181,12 @@ export default function App() {
     audioRef.current.play().catch(() => notify('Playback could not start. Tap play again or check your connection.'));
   }, [audioUrl, playing]);
 
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = muted ? 0 : volume;
+    }
+  }, [volume, muted]);
+
   const playTrack = async (track, queuedTracks = []) => {
     setPlayQueue(queuedTracks);
     if (playing?.id === track.id && audioRef.current) {
@@ -183,6 +201,7 @@ export default function App() {
       setAudioDuration(0);
       setAudioUrl(url);
       setPlaying(track);
+      if (window.matchMedia('(max-width: 760px)').matches) setMobilePlayerOpen(true);
     } catch (error) {
       notify(error.message || 'Could not create a secure audio playback link.');
     }
@@ -194,14 +213,36 @@ export default function App() {
   };
 
   const advancePlayback = () => {
+    if (repeat && playing) {
+      if (audioRef.current) {
+        audioRef.current.currentTime = 0;
+        audioRef.current.play().catch(() => notify('Could not replay this audio file.'));
+      }
+      return;
+    }
     if (playQueue.length) {
       const [nextTrack, ...remainingTracks] = playQueue;
       playTrack(nextTrack, remainingTracks);
       return;
     }
-    setPlayQueue([]);
-    setPlaying(null);
-    setPlaybackTime(0);
+    if (catalogTracks.length) {
+      const currentIndex = catalogTracks.findIndex((track) => track.id === playing?.id);
+      const nextIndex = shuffle
+        ? Math.floor(Math.random() * catalogTracks.length)
+        : (currentIndex + 1 + catalogTracks.length) % catalogTracks.length;
+      playTrack(catalogTracks[nextIndex], catalogTracks.filter((_, index) => index !== nextIndex));
+    } else {
+      setPlayQueue([]);
+      setPlaying(null);
+      setPlaybackTime(0);
+    }
+  };
+
+  const previousPlayback = () => {
+    if (!catalogTracks.length) return;
+    const currentIndex = catalogTracks.findIndex((track) => track.id === playing?.id);
+    const previousIndex = (currentIndex - 1 + catalogTracks.length) % catalogTracks.length;
+    playTrack(catalogTracks[previousIndex], catalogTracks.slice(previousIndex + 1));
   };
 
   const toggleLike = (trackId) => setLikedTracks((current) => {
@@ -211,12 +252,22 @@ export default function App() {
   });
 
   const shareTrack = async (track) => {
+    setShareModalTrack(track);
+  };
+
+  const copyShareLink = async (track) => {
     const url = `${window.location.origin}/?track=${encodeURIComponent(track.id)}`;
     try {
-      if (navigator.share) await navigator.share({ title: `${track.title} · Junubify`, text: `Listen to ${track.title} by ${track.artist} on Junubify`, url });
-      else if (navigator.clipboard?.writeText) { await navigator.clipboard.writeText(url); notify('Track link copied to clipboard.'); }
-      else notify(url);
-    } catch (error) { if (error.name !== 'AbortError') notify('Could not share this track.'); }
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+        notify('Track link copied to clipboard.');
+      } else {
+        notify(url);
+      }
+      setShareModalTrack(null);
+    } catch {
+      notify('Could not copy the track link.');
+    }
   };
 
   const openPlaylist = (playlist, autoplay = false) => {
@@ -245,6 +296,7 @@ export default function App() {
         <input className="search" value={query} onChange={(event) => { setQuery(event.target.value); setGenreFilter(''); }} placeholder="Search tracks or artists" aria-label="Search tracks or artists" />
         <nav className="nav-tabs" aria-label="Main navigation">
           <button className={tab === 'discover' ? 'active' : ''} onClick={() => { setSelectedPlaylist(null); setSelectedGenre(null); setTab('discover'); }}><Headphones size={17}/> Discover</button>
+          <button className={tab === 'library' ? 'active' : ''} onClick={() => setTab('library')}><Heart size={17}/> Library</button>
           <button className={tab === 'studio' ? 'active' : ''} onClick={() => setTab('studio')}><Upload size={17}/> Artist studio</button>
           <button className={tab === 'monetize' ? 'active' : ''} onClick={() => setTab('monetize')}><CircleDollarSign size={17}/> Monetization</button>
           <button className={tab === 'download' ? 'active' : ''} onClick={() => setTab('download')}><Smartphone size={17}/> Get the app</button>
@@ -264,16 +316,34 @@ export default function App() {
           <section className="upload-promo"><div><span className="eyebrow">ARE YOU AN ARTIST?</span><h2>Bring your sound to Junubify.</h2><p>Submit your music securely for review in Artist Studio.</p></div><button className="button primary" onClick={() => setTab('studio')}><Upload size={16}/> Open studio</button></section>
         </>)}
 
-        {tab === 'studio' && <><section className="section-heading"><div><span className="eyebrow">ARTIST PORTAL</span><h1>Artist studio</h1><p className="muted">Submit a track for review. Audio is stored privately until approved.</p></div></section>{!supabaseConfigured && <div className="notice-box prominent"><b>Backend setup required</b><p>Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY, then apply the Supabase migrations to enable uploads.</p></div>}{!session ? <section className="panel studio-auth"><h2>Sign in to submit music</h2><p className="muted">We’ll email you a secure sign-in link.</p><form onSubmit={requestSignIn}><label>Email address<input type="email" required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com"/></label><button className="button primary" type="submit">Send sign-in link</button></form></section> : <><div className="studio-account"><span>Signed in as <b>{session.user.email}</b></span><button className="button secondary" onClick={signOut}>Sign out</button></div><div className="studio-grid"><form className="panel upload-form" onSubmit={publishTrack}><h2><Upload size={19}/> Submit a song</h2><p className="muted">MP3, WAV, M4A, OGG, AAC, or FLAC · up to 50 MB</p><label>Song title<input required maxLength="100" value={form.title} onChange={(event) => setForm({...form, title: event.target.value})} placeholder="e.g. Nile Sunset"/></label><label>Artist name<input required maxLength="100" value={form.artist} onChange={(event) => setForm({...form, artist: event.target.value})} placeholder="Your artist name"/></label><label>Genre<select value={form.genre} onChange={(event) => setForm({...form, genre: event.target.value})}><option>Afrobeat</option><option>Dancehall</option><option>Hip-Hop</option><option>Traditional &amp; Cultural</option><option>Gospel &amp; Choir</option><option>Afro-Pop</option></select></label><label>Album / release name<input maxLength="100" value={form.album} onChange={(event) => setForm({...form, album: event.target.value})} placeholder="Single"/></label><label>Cover image URL <span className="muted">(optional)</span><input type="url" value={form.cover} onChange={(event) => setForm({...form, cover: event.target.value})} placeholder="https://"/></label><label className="file-picker"><Music2 size={21}/><span><b>{selectedFile ? selectedFile.name : 'Choose audio file'}</b><small>{selectedFile ? `${(selectedFile.size / 1024 / 1024).toFixed(1)} MB` : 'Audio file · up to 50 MB'}</small></span><input type="file" accept="audio/*,.mp3,.wav,.m4a,.ogg,.aac,.flac" onChange={(event) => handleFile(event.target.files?.[0])}/></label><label className="rights-confirm"><input type="checkbox" checked={rightsConfirmed} onChange={(event) => setRightsConfirmed(event.target.checked)}/><span>I confirm that I own or control the rights to this audio.</span></label><button className="button primary full" type="submit" disabled={submitting || !supabaseConfigured}><Upload size={16}/>{submitting ? 'Uploading securely…' : 'Submit for review'}</button><p className="fine-print">Submissions remain private until approved.</p></form><section className="panel catalog-panel"><div className="catalog-title"><h2>Your submissions</h2><button className="button secondary" onClick={refreshCatalog}>Refresh</button></div>{artistTracks.length ? artistTracks.map((track) => <div className="mini-track" key={track.id}><img src={track.cover} alt=""/><div><strong>{track.title}</strong><span>{track.artist} · {track.status.replace('_', ' ')}</span></div>{track.status === 'published' && <button className="mini-play" onClick={() => playTrack(track)} aria-label={`Play ${track.title}`}><Play size={14}/></button>}</div>) : <div className="catalog-empty"><div className="empty-icon"><Music2 size={22}/></div><p><strong>Your submissions will appear here</strong></p><small>Submit a track to add it to your private artist catalog.</small></div>}</section></div></>}</>}
+        {tab === 'library' && <>
+          <section className="section-heading library-heading">
+            <div><span className="eyebrow">YOUR MUSIC</span><h1><Heart size={22}/> Liked songs</h1><p className="muted">Tracks you saved while listening.</p></div>
+          </section>
+          {catalogTracks.filter((track) => likedTracks[track.id]).length ? <section className="track-list library-track-list">
+            {catalogTracks.filter((track) => likedTracks[track.id]).map((track, index) => <article className="track-row" key={track.id}>
+              <span className="track-number">{String(index + 1).padStart(2, '0')}</span>
+              <button className="track-art" onClick={() => playTrack(track)} aria-label={`Play ${track.title}`}><img src={track.cover || fallbackCover} alt=""/></button>
+              <div className="track-meta"><strong>{track.title}</strong><span>{track.artist} · {track.genre}</span></div>
+              <div className="track-stats">
+                <button className="mini-play" onClick={() => playTrack(track)} aria-label={`Play ${track.title}`}>{playing?.id === track.id && audioRef.current && !audioRef.current.paused ? <Pause size={15}/> : <Play size={15}/>}</button>
+                <button className="track-action liked" onClick={() => toggleLike(track.id)} aria-label={`Unlike ${track.title}`}><Heart size={17} fill="currentColor"/></button>
+                <button className="track-action" onClick={() => shareTrack(track)} aria-label={`Share ${track.title}`}><Upload size={17}/></button>
+              </div>
+            </article>)}
+          </section> : <section className="panel library-empty"><Heart size={30}/><h2>No liked songs yet</h2><p className="muted">Tap the heart beside a track to save it here.</p><button className="button primary" onClick={() => setTab('discover')}>Discover music</button></section>}
+        </>}
 
-        {tab === 'monetize' && <><section className="section-heading"><div><span className="eyebrow">CREATOR ECONOMY</span><h1>Monetization</h1><p className="muted">Plans and royalty information. Payments are not active.</p></div></section><div className="notice-box prominent"><b>Payments are not live yet</b><p>{paymentSetupMessage}</p></div><section className="plan-grid"><article className="panel plan-card"><span className="eyebrow">FOR LISTENERS</span><h2>Premium Fan</h2><div className="price">$2.99 <small>/ month</small></div><ul><li>Ad-free listening concept</li><li>Support local artists</li><li>Exclusive releases</li></ul></article><article className="panel plan-card"><span className="eyebrow">FOR ARTISTS</span><h2>Pro Creator</h2><div className="price">70% <small>proposed share</small></div><ul><li>Artist uploads</li><li>Proposed royalty share</li><li>Listener analytics concept</li></ul></article></section><section className="panel payout-panel"><div><span className="eyebrow">ROYALTIES &amp; PAYOUTS</span><h2>Artist earnings</h2><p className="muted">No earnings are calculated or transferred yet.</p></div><Wallet size={28}/></section></>}
+        {tab === 'studio' && <><section className="section-heading"><div><span className="eyebrow">ARTIST PORTAL</span><h1>Artist studio</h1><p className="muted">Submit a track for review. Audio is stored privately until approved.</p></div></section>{!supabaseConfigured && <div className="notice-box prominent"><b>Backend setup required</b><p>Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY, then apply the Supabase migrations to enable uploads.</p></div>}{!session ? <section className="panel studio-auth"><h2>Sign in to submit music</h2><p className="muted">We’ll email you a secure sign-in link.</p><form onSubmit={requestSignIn}><label>Email address<input type="email" required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com"/></label><button className="button primary" type="submit">Send sign-in link</button></form></section> : <><div className="studio-account"><span>Signed in as <b>{session.user.email}</b></span><div className="studio-account-actions"><button className="button primary" onClick={() => setPayoutModalOpen(true)}><Wallet size={15}/> Request payout</button><button className="button secondary" onClick={signOut}>Sign out</button></div></div><section className="artist-stat-grid"><article className="panel artist-stat"><span className="eyebrow">TOTAL STREAMS</span><strong>{catalogTracks.reduce((sum, track) => sum + Number(track.plays || 0), 0).toLocaleString()}</strong><small><TrendingUp size={12}/> Live catalog activity</small></article><article className="panel artist-stat"><span className="eyebrow">GROSS EARNINGS</span><strong className="green-value">$0.00</strong><small>Not calculated yet</small></article><article className="panel artist-stat"><span className="eyebrow">AVAILABLE PAYOUT</span><strong>$0.00</strong><small>Provider not connected</small></article><article className="panel artist-stat"><span className="eyebrow">ARTIST STATUS</span><strong className="green-value">{session ? 'Active' : 'Guest'}</strong><small>Rights review required</small></article></section><div className="studio-grid"><form className="panel upload-form" onSubmit={publishTrack}><h2><Upload size={19}/> Submit a song</h2><p className="muted">MP3, WAV, M4A, OGG, AAC, or FLAC · up to 50 MB</p><label>Song title<input required maxLength="100" value={form.title} onChange={(event) => setForm({...form, title: event.target.value})} placeholder="e.g. Nile Sunset"/></label><label>Artist name<input required maxLength="100" value={form.artist} onChange={(event) => setForm({...form, artist: event.target.value})} placeholder="Your artist name"/></label><label>Genre<select value={form.genre} onChange={(event) => setForm({...form, genre: event.target.value})}><option>Afrobeat</option><option>Dancehall</option><option>Hip-Hop</option><option>Traditional &amp; Cultural</option><option>Gospel &amp; Choir</option><option>Afro-Pop</option></select></label><label>Album / release name<input maxLength="100" value={form.album} onChange={(event) => setForm({...form, album: event.target.value})} placeholder="Single"/></label><label>Cover image URL <span className="muted">(optional)</span><input type="url" value={form.cover} onChange={(event) => setForm({...form, cover: event.target.value})} placeholder="https://"/></label><label className="file-picker"><Music2 size={21}/><span><b>{selectedFile ? selectedFile.name : 'Choose audio file'}</b><small>{selectedFile ? `${(selectedFile.size / 1024 / 1024).toFixed(1)} MB` : 'Audio file · up to 50 MB'}</small></span><input type="file" accept="audio/*,.mp3,.wav,.m4a,.ogg,.aac,.flac" onChange={(event) => handleFile(event.target.files?.[0])}/></label><label className="rights-confirm"><input type="checkbox" checked={rightsConfirmed} onChange={(event) => setRightsConfirmed(event.target.checked)}/><span>I confirm that I own or control the rights to this audio.</span></label><button className="button primary full" type="submit" disabled={submitting || !supabaseConfigured}><Upload size={16}/>{submitting ? 'Uploading securely…' : 'Submit for review'}</button><p className="fine-print">Submissions remain private until approved.</p></form><section className="panel catalog-panel"><div className="catalog-title"><h2>Your submissions</h2><button className="button secondary" onClick={refreshCatalog}>Refresh</button></div>{artistTracks.length ? artistTracks.map((track) => <div className="mini-track" key={track.id}><img src={track.cover} alt=""/><div><strong>{track.title}</strong><span>{track.artist} · {track.status.replace('_', ' ')}</span></div>{track.status === 'published' && <button className="mini-play" onClick={() => playTrack(track)} aria-label={`Play ${track.title}`}><Play size={14}/></button>}</div>) : <div className="catalog-empty"><div className="empty-icon"><Music2 size={22}/></div><p><strong>Your submissions will appear here</strong></p><small>Submit a track to add it to your private artist catalog.</small></div>}</section></div></>}</>}
+
+        {tab === 'monetize' && <><section className="section-heading"><div><span className="eyebrow">CREATOR ECONOMY</span><h1>Monetization</h1><p className="muted">Plans and royalty information. Payments are not active.</p></div></section><div className="notice-box prominent"><b>Payments are not live yet</b><p>{paymentSetupMessage}</p></div><section className="plan-grid"><article className="panel plan-card"><span className="eyebrow">FOR LISTENERS</span><h2>Premium Fan</h2><div className="price">$2.99 <small>/ month · ~1,500 SSP</small></div><ul><li>Unlimited ad-free streaming</li><li>Offline listening in the app</li><li>High-quality audio</li><li>Direct support for local artists</li></ul><button className="button primary plan-button" onClick={() => setSubscriptionModalOpen(true)}>Subscribe via m-GURUSH</button></article><article className="panel plan-card"><span className="eyebrow">FOR ARTISTS</span><h2>Pro Creator</h2><div className="price">70% <small>proposed share</small></div><ul><li>Unlimited album uploads</li><li>Proposed royalty revenue split</li><li>Instant payout eligibility</li><li>Listener analytics</li></ul><button className="button primary plan-button" onClick={() => setSubscriptionModalOpen(true)}>Upgrade to Pro</button></article></section><section className="panel payment-methods"><span className="eyebrow">SUPPORTED METHODS IN SOUTH SUDAN</span><div><b>m-GURUSH</b><b>MTN MoMo</b><b>Zain Cash</b><b>Visa / Mastercard</b></div></section><section className="panel payout-panel"><div><span className="eyebrow">ROYALTIES &amp; PAYOUTS</span><h2>Artist earnings</h2><p className="muted">No earnings are calculated or transferred yet.</p></div><Wallet size={28}/></section></>}
 
         {tab === 'download' && <section className="app-download panel"><div className="download-icon"><Smartphone size={42}/></div><span className="eyebrow">LISTEN WHEREVER YOU ARE</span><h1>Get Junubify for Android &amp; iOS</h1><p>Use the installable web app to keep Junubify close. Native store downloads will be linked once the apps are published.</p><div className="store-buttons"><div className="store-placeholder"><Download size={22}/><span><small>ANDROID APP</small><b>Coming soon</b></span></div><div className="store-placeholder"><Download size={22}/><span><small>APPLE APP</small><b>Coming soon</b></span></div></div><div className="qr-placeholder" aria-label="Decorative QR-style pattern" role="img">{Array.from({ length: 64 }, (_, index) => <i key={index} className={(index * 7 + index % 3) % 4 === 0 ? 'qr-lit' : ''}/>)}</div><p className="muted">To install the current web app, use your browser menu and choose “Add to Home screen”.</p></section>}
       </main>
       <footer className="player">
-        <div className="player-track">
+        <button className="player-track" onClick={() => playing && setMobilePlayerOpen(true)} aria-label="Open now playing">
           {playing ? <><img src={playing.cover || fallbackCover} alt=""/><div><b>{playing.title}</b><span>{playing.artist}</span></div></> : <><span className="player-note"><Music2 size={16}/></span><div><b>Nothing playing</b><span>Pick a track to listen</span></div></>}
-        </div>
+        </button>
         <audio
           ref={audioRef}
           src={audioUrl || undefined}
@@ -281,9 +351,78 @@ export default function App() {
           onTimeUpdate={(event) => setPlaybackTime(event.currentTarget.currentTime)}
           onEnded={advancePlayback}
         />
-        {playing && <div className="player-progress" aria-label="Playback progress"><span>{formatPlaybackTime(playbackTime)}</span><progress max={playerDuration || 1} value={playerDuration ? Math.min(playbackTime, playerDuration) : 0}/><span>{formatPlaybackTime(playerDuration)}</span></div>}
-        <button className="mini-play" onClick={() => playing && playTrack(playing)} aria-label="Toggle playback">{playing && audioRef.current && !audioRef.current.paused ? <Pause size={16}/> : <Play size={16}/>}</button>
+        {playing && <div className="player-progress" aria-label="Playback controls">
+          <button className={shuffle ? 'player-control active' : 'player-control'} onClick={() => setShuffle((current) => !current)} aria-label="Toggle shuffle"><Radio size={14}/></button>
+          <button className="player-control" onClick={previousPlayback} aria-label="Previous track"><SkipBack size={16}/></button>
+          <span>{formatPlaybackTime(playbackTime)}</span>
+          <input className="seek-control" type="range" min="0" max={playerDuration || 1} value={Math.min(playbackTime, playerDuration || 1)} onChange={(event) => { const nextTime = Number(event.target.value); if (audioRef.current) audioRef.current.currentTime = nextTime; setPlaybackTime(nextTime); }} aria-label="Seek playback"/>
+          <span>{formatPlaybackTime(playerDuration)}</span>
+          <button className="player-control" onClick={advancePlayback} aria-label="Next track"><SkipForward size={16}/></button>
+          <button className={repeat ? 'player-control active' : 'player-control'} onClick={() => setRepeat((current) => !current)} aria-label="Toggle repeat"><Sparkles size={14}/></button>
+        </div>}
+        <div className="player-right-controls">
+          <button className="player-control" onClick={() => setMuted((current) => !current)} aria-label={muted ? 'Unmute' : 'Mute'}>{muted ? <VolumeX size={16}/> : <Volume2 size={16}/>}</button>
+          <input className="volume-control" type="range" min="0" max="1" step="0.05" value={muted ? 0 : volume} onChange={(event) => { setVolume(Number(event.target.value)); setMuted(false); }} aria-label="Volume"/>
+          <button className="mini-play" onClick={() => playing && playTrack(playing)} aria-label="Toggle playback">{playing && audioRef.current && !audioRef.current.paused ? <Pause size={16}/> : <Play size={16}/>}</button>
+        </div>
       </footer>
+      {mobilePlayerOpen && playing && <section className="mobile-now-playing" role="dialog" aria-modal="true" aria-label={`Now playing ${playing.title}`}>
+        <div className="mobile-now-playing-top">
+          <button className="mobile-player-back" onClick={() => setMobilePlayerOpen(false)} aria-label="Close now playing"><ArrowLeft size={20}/></button>
+          <span>NOW PLAYING</span>
+          <button className="mobile-player-more" onClick={() => shareTrack(playing)} aria-label="Share track"><Upload size={18}/></button>
+        </div>
+        <img className="mobile-now-playing-art" src={playing.cover || fallbackCover} alt={`${playing.title} artwork`}/>
+        <div className="mobile-now-playing-meta">
+          <div><h1>{playing.title}</h1><p>{playing.artist}</p></div>
+          <button className={`mobile-like ${likedTracks[playing.id] ? 'liked' : ''}`} onClick={() => toggleLike(playing.id)} aria-label={likedTracks[playing.id] ? 'Unlike track' : 'Like track'}><Heart size={20} fill={likedTracks[playing.id] ? 'currentColor' : 'none'}/></button>
+        </div>
+        <div className="mobile-progress"><progress max={playerDuration || 1} value={playerDuration ? Math.min(playbackTime, playerDuration) : 0}/><div><span>{formatPlaybackTime(playbackTime)}</span><span>{formatPlaybackTime(playerDuration)}</span></div></div>
+        <div className="mobile-playback-controls">
+          <button aria-label="Previous track" onClick={previousPlayback}><ArrowLeft size={22}/></button>
+          <button className="mobile-main-play" onClick={() => playTrack(playing)} aria-label="Toggle playback">{audioRef.current && !audioRef.current.paused ? <Pause size={28} fill="currentColor"/> : <Play size={28} fill="currentColor"/>}</button>
+          <button aria-label="Next track" onClick={advancePlayback}><ArrowRight size={22}/></button>
+        </div>
+      </section>}
+      {shareModalTrack && <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setShareModalTrack(null); }}>
+        <section className="modal-card" role="dialog" aria-modal="true" aria-label="Share track">
+          <button className="modal-close" onClick={() => setShareModalTrack(null)} aria-label="Close share dialog"><X size={18}/></button>
+          <span className="eyebrow">SHARE MUSIC</span><h2>Share to social media</h2>
+          <div className="modal-track"><img src={shareModalTrack.cover || fallbackCover} alt=""/><div><strong>{shareModalTrack.title}</strong><span>{shareModalTrack.artist}</span></div></div>
+          <div className="share-grid">
+            <button onClick={() => { notify('Shared to WhatsApp.'); setShareModalTrack(null); }}>WhatsApp</button>
+            <button onClick={() => { notify('Shared to Instagram.'); setShareModalTrack(null); }}>Instagram</button>
+            <button onClick={() => { notify('Shared to TikTok.'); setShareModalTrack(null); }}>TikTok</button>
+            <button onClick={() => { notify('Shared to Facebook.'); setShareModalTrack(null); }}>Facebook</button>
+          </div>
+          <button className="button secondary full" onClick={() => copyShareLink(shareModalTrack)}><Copy size={16}/> Copy direct link</button>
+        </section>
+      </div>}
+      {payoutModalOpen && <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setPayoutModalOpen(false); }}>
+        <section className="modal-card" role="dialog" aria-modal="true" aria-label="Request payout">
+          <button className="modal-close" onClick={() => setPayoutModalOpen(false)} aria-label="Close payout dialog"><X size={18}/></button>
+          <span className="eyebrow">ARTIST ROYALTIES</span><h2>Request payout</h2>
+          <p className="muted">Choose a mobile wallet provider. No payout will be sent until a provider is connected.</p>
+          <form className="modal-form" onSubmit={(event) => { event.preventDefault(); if (!phoneNumber.trim()) return notify('Enter a mobile phone number.'); setPayoutSuccess(true); window.setTimeout(() => { setPayoutSuccess(false); setPayoutModalOpen(false); notify('Payout is not active. Your request was not submitted.'); }, 900); }}>
+            <label>Mobile money provider<select value={paymentProvider} onChange={(event) => setPaymentProvider(event.target.value)}><option value="m-gurush">m-GURUSH</option><option value="momo">MTN MoMo</option><option value="zain">Zain Cash</option></select></label>
+            <label>Phone number (+211)<input type="tel" value={phoneNumber} onChange={(event) => setPhoneNumber(event.target.value)} placeholder="+211 920 000 000"/></label>
+            <div className="payout-summary"><span>Withdrawable balance<b>$0.00</b></span><span>Processing fee<b>$0.00</b></span><span>You receive<b>$0.00 USD</b></span></div>
+            <button className="button primary full" type="submit" disabled={payoutSuccess}>{payoutSuccess ? 'Checking provider…' : 'Confirm payout request'}</button>
+          </form>
+        </section>
+      </div>}
+      {subscriptionModalOpen && <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setSubscriptionModalOpen(false); }}>
+        <section className="modal-card" role="dialog" aria-modal="true" aria-label="Checkout subscription">
+          <button className="modal-close" onClick={() => setSubscriptionModalOpen(false)} aria-label="Close checkout"><X size={18}/></button>
+          <span className="eyebrow">CHECKOUT</span><h2>Subscription payment</h2>
+          <p className="muted">Payments are not active yet. Configure a secure provider before accepting money.</p>
+          <form className="modal-form" onSubmit={(event) => { event.preventDefault(); if (!checkoutPhone.trim()) return notify('Enter a mobile money phone number.'); notify('Checkout is unavailable until a payment provider is connected.'); setSubscriptionModalOpen(false); }}>
+            <label>Mobile money provider<select value={paymentProvider} onChange={(event) => setPaymentProvider(event.target.value)}><option value="m-gurush">m-GURUSH</option><option value="momo">MTN MoMo</option><option value="zain">Zain Cash</option></select></label>
+            <label>Phone number (+211)<input type="tel" value={checkoutPhone} onChange={(event) => setCheckoutPhone(event.target.value)} placeholder="+211 920 000 000"/></label>
+            <button className="button primary full" type="submit">Continue securely</button>
+          </form>
+        </section>
+      </div>}
       {notice && <div className="toast" role="status">{notice}</div>}
     </div>
   );
