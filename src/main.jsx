@@ -5,6 +5,7 @@ import './styles.css';
 import './mobile.css';
 import './search-enhancements.css';
 import './search-enhancements.jsx';
+import './sample-artist-profile.jsx';
 
 class AppErrorBoundary extends React.Component {
   constructor(props) {
