@@ -20,7 +20,7 @@ The anon/publishable key is intended for browser use only. Never put a Supabase 
 3. Copy `.env.example` to `.env.local` and set the project URL and anon/publishable key. Use these same public client values in your web host's environment settings.
 4. Start the app. Artists request an email sign-in link, then upload metadata and audio from Artist Studio.
 
-Audio uploads go to a private 50 MB bucket under the authenticated artist's UUID. Database and storage row-level security restrict upload/read access; new tracks are automatically queued as `pending_review` with automated metadata triage. Only a trusted administrator should approve a track before it becomes public. The public catalog fetches published rows, and audio is served with temporary signed URLs. The UI's sample tracks remain demo content.
+Audio uploads go to a private 50 MB bucket under the authenticated artist's UUID. Database and storage row-level security restrict upload/read access. Admin-verified artists whose uploads pass metadata checks publish automatically; other tracks are queued as `pending_review` for moderator approval. Metadata checks and artist verification do not verify copyright ownership. The public catalog fetches published rows, and audio is served with temporary signed URLs. The UI's sample tracks remain demo content.
 
 Before launch, apply all migrations, configure a trusted administrator, add rate limits/abuse controls, stronger content validation/scanning, backup/retention policies, and production auth email configuration. The browser file size/type checks are usability checks, not a security boundary.
 

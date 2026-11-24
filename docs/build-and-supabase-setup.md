@@ -19,11 +19,12 @@ For a new Supabase project:
    7. `supabase/migrations/20261119000000_artist_profiles.sql`
    8. `supabase/migrations/20261120000000_privacy_first_analytics.sql`
    9. `supabase/migrations/20261124000000_artist_upload_genres.sql`
+   10. `supabase/migrations/20261124010000_verified_artist_fast_lane.sql`
 3. Copy `.env.example` to `.env.local` and set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`. Use the same public client values in your deployed web app's environment settings.
 4. Add the deployed web origin to Supabase Auth's allowed redirect URLs. For Android sign-in, also add `junubify://auth/callback`.
 5. To moderate uploads, assign the trusted `role: "admin"` claim in Supabase Auth app metadata using a secure admin workflow; follow `docs/admin-review.md`.
 
-The first migration creates the private audio bucket, track table, and artist-owned upload policies. Artists sign in through Artist Studio, upload MP3/WAV/M4A/OGG/AAC/FLAC files up to 50 MB, and get an immediate submission record. Every track stays private as `pending_review` until a trusted moderator approves it. Automated metadata checks triage submissions but do not validate copyright or publish automatically.
+The first migration creates the private audio bucket, track table, and artist-owned upload policies. Artists sign in through Artist Studio, upload MP3/WAV/M4A/OGG/AAC/FLAC files up to 50 MB, and get an immediate submission record. Automated metadata checks triage submissions. Admin-verified artists with clean checks enter the fast lane and publish automatically; all other uploads stay private as `pending_review` until moderator approval. Metadata checks and artist verification do not prove copyright ownership.
 
 The second migration adds cleanup for files left behind when track metadata insertion fails. The payment migration only creates a restricted ledger foundation; checkout, webhooks, and payouts remain disabled until a provider integration is implemented and verified.
 
