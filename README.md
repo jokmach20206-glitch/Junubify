@@ -15,14 +15,14 @@ The anon/publishable key is intended for browser use only. Never put a Supabase 
 
 ## Configure persistent song submissions
 
-1. Create a Supabase project and enable email authentication (configure allowed redirect URLs for your deployed site).
-2. Run `supabase/migrations/20261109000000_platform_backend.sql` in the project SQL editor.
-3. Set the project URL and anon/publishable key in `.env.local` and in your web host's environment settings.
-4. Start the app. Artists request an email sign-in link, then submit metadata and audio from Artist Studio.
+1. Create a Supabase project and enable email authentication.
+2. Follow [the Supabase setup guide](docs/build-and-supabase-setup.md) to apply every migration in timestamp order and configure redirect URLs.
+3. Copy `.env.example` to `.env.local` and set the project URL and anon/publishable key. Use these same public client values in your web host's environment settings.
+4. Start the app. Artists request an email sign-in link, then upload metadata and audio from Artist Studio.
 
-Audio uploads go to a private 50 MB bucket under the authenticated artist's UUID. Database and storage row-level security restrict upload/read access; new tracks remain `pending_review`. Only a trusted administrator/backend should approve a track by changing its status to `published`. The public catalog fetches published rows, and audio is served with temporary signed URLs. The UI's sample tracks remain demo content.
+Audio uploads go to a private 50 MB bucket under the authenticated artist's UUID. Database and storage row-level security restrict upload/read access; new tracks are automatically queued as `pending_review` with automated metadata triage. Only a trusted administrator should approve a track before it becomes public. The public catalog fetches published rows, and audio is served with temporary signed URLs. The UI's sample tracks remain demo content.
 
-Before launch, add an admin review workflow, rate limits/abuse controls, stronger content validation/scanning, backup/retention policies, and production auth email configuration. The browser file size/type checks are usability checks, not a security boundary.
+Before launch, apply all migrations, configure a trusted administrator, add rate limits/abuse controls, stronger content validation/scanning, backup/retention policies, and production auth email configuration. The browser file size/type checks are usability checks, not a security boundary.
 
 ## Deploy to Vercel
 
@@ -31,6 +31,10 @@ Before launch, add an admin review workflow, rate limits/abuse controls, stronge
 The GitHub repository homepage is `https://junubify.vercel.app`, while an older screenshot showed `https://junubifysounds.vercel.app`. Verify which Vercel project owns the URL you are opening. In Vercel, inspect the latest deployment's source repository, branch, and commit, then assign the desired domain to that project under **Settings → Domains**. A push to GitHub only updates a Vercel project if that project is connected to this repository and branch.
 
 If the app error screen appears, it displays the browser-side exception message to help diagnose the actual failure. Confirm the deployment is from the latest `main` commit and open the deployment's own URL, not an older deployment alias.
+
+## Prepare the Android app
+
+The Capacitor Android wrapper uses `com.junubify.app`. Run `npm run android:sync` to build the web app and sync it into the native project, then open it in Android Studio with `npm run android:open`. See [Google Play submission preparation](docs/google-play-submission.md) for signing, Supabase deep-link setup, and the remaining release checklist. The wrapper is not a signed or submitted Play release yet.
 
 ## Payments: not activated
 

@@ -3,6 +3,14 @@ import { supabase } from './supabase.js';
 const AUDIO_BUCKET = 'junubify-audio';
 const MAX_AUDIO_BYTES = 50 * 1024 * 1024;
 const ALLOWED_EXTENSIONS = new Set(['mp3', 'wav', 'm4a', 'ogg', 'aac', 'flac']);
+const CONTENT_TYPE_BY_EXTENSION = {
+  mp3: 'audio/mpeg',
+  wav: 'audio/wav',
+  m4a: 'audio/mp4',
+  ogg: 'audio/ogg',
+  aac: 'audio/aac',
+  flac: 'audio/flac',
+};
 
 function throwIfError(result) {
   if (result.error) throw result.error;
@@ -10,6 +18,7 @@ function throwIfError(result) {
 }
 
 function mapTrack(track) {
+  const audioPath = typeof track.audio_path === 'string' ? track.audio_path : '';
   return {
     id: track.id,
     title: track.title,
@@ -18,9 +27,9 @@ function mapTrack(track) {
     album: track.album,
     plays: track.plays ?? 0,
     cover: track.cover_url || 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&q=80&w=500',
-    audioPath: track.audio_path,
+    audioPath,
     status: track.status,
-    fileName: track.audio_path.split('/').pop(),
+    fileName: audioPath ? audioPath.split('/').pop() : '',
   };
 }
 
@@ -63,7 +72,7 @@ export async function submitTrack({ file, form, artistId }) {
 
   const audioPath = `${artistId}/${crypto.randomUUID()}.${extension}`;
   const upload = await supabase.storage.from(AUDIO_BUCKET).upload(audioPath, file, {
-    contentType: file.type || 'application/octet-stream',
+    contentType: CONTENT_TYPE_BY_EXTENSION[extension],
     upsert: false,
   });
   if (upload.error) throw upload.error;

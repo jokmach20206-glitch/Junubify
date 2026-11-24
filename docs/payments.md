@@ -16,6 +16,14 @@ Confirm directly with M-Gurush, MTN MoMo, or a card acquirer that it can onboard
 
 Store credentials only in Supabase Edge Function secrets. Never expose provider secrets or Supabase service-role credentials in `VITE_` variables, frontend code, or client responses. Do not share secrets in chat.
 
+## Google Play and Rwanda
+
+The Google Play country table currently lists Rwanda as eligible for developer registration but not merchant registration. Recheck the [official country table](https://support.google.com/googleplay/android-developer/answer/9306917?hl=en) before planning Play sales; developer registration alone does not establish that the business can receive merchant payouts there.
+
+Play-distributed digital subscriptions and other applicable digital purchases generally need Google Play Billing unless an explicit policy exception or enrolled program applies. See Google's [Payments policy](https://support.google.com/googleplay/android-developer/answer/9858738?hl=en). Do not route Play users to MTN MoMo or Airtel Money as a substitute without confirming the applicable policy/program eligibility. Treat mobile-money checkout for the web app as a separate flow.
+
+For either MTN MoMo or Airtel Money, verify merchant collection, settlement to the business, refunds, and artist payout/disbursement support directly with the provider before implementation. A consumer wallet or collection API does not automatically provide compliant multi-artist payouts.
+
 ## Not production-ready
 
 No live Supabase project was accessed or changed by this code scaffold, and no provider sandbox or live transaction has been tested. Do not advertise payment acceptance until a verified provider adapter and end-to-end tests are in place.

@@ -12,12 +12,12 @@ function ListeningDetails() {
   const [open, setOpen] = useState(false);
   const [snapshot, setSnapshot] = useState({ title: '', artist: '', cover: '', currentTime: 0, duration: 0, playing: false });
 
-  const getAudio = () => document.querySelector('.player audio');
+  const getAudio = () => document.getElementById('junubify-main-audio');
 
   useEffect(() => {
     const update = () => {
       const player = document.querySelector('.player');
-      const audioElement = player?.querySelector('audio');
+      const audioElement = getAudio();
       const title = player?.querySelector('.player-track b')?.textContent?.trim() || '';
       const artist = player?.querySelector('.player-track span:not(.player-note)')?.textContent?.trim() || '';
       const cover = player?.querySelector('.player-track img')?.src || '';
@@ -55,7 +55,7 @@ function ListeningDetails() {
 
   const skip = (direction) => {
     const label = direction === 'next' ? 'Next track' : 'Previous track';
-    document.querySelector(`.player-progress button[aria-label="${label}"]`)?.click();
+    document.querySelector(`.now-playing-view button[aria-label="${label}"]`)?.click();
   };
 
   const like = () => {

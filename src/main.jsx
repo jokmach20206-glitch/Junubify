@@ -4,8 +4,6 @@ import App from './App.jsx';
 import './styles.css';
 import './mobile.css';
 import './search-enhancements.css';
-import './search-enhancements.jsx';
-import './sample-artist-profile.jsx';
 
 class AppErrorBoundary extends React.Component {
   constructor(props) {
@@ -34,6 +32,11 @@ class AppErrorBoundary extends React.Component {
     }
     return this.props.children;
   }
+}
+
+if (window.__junubifyStartupTimer) {
+  window.clearTimeout(window.__junubifyStartupTimer);
+  window.__junubifyStartupTimer = null;
 }
 
 let container = document.getElementById('root');

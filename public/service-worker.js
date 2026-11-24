@@ -1,4 +1,4 @@
-const CACHE_NAME = 'junubify-shell-v2';
+const CACHE_NAME = 'junubify-shell-v6';
 const APP_SHELL = ['/', '/manifest.webmanifest', '/icons/junubify.svg'];
 const PRIVATE_API_PATHS = ['/rest/v1/', '/auth/v1/', '/storage/v1/', '/functions/v1/'];
 

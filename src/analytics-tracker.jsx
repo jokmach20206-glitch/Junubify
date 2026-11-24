@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
-import { recordAnalyticsEvent } from './lib/analytics.js';
+import { isAnalyticsEnabled, recordAnalyticsEvent } from './lib/analytics.js';
 import { supabase } from './lib/supabase.js';
 import './analytics.css';
 
@@ -14,6 +14,7 @@ function AnalyticsTracker() {
     let disposed = false;
     const resolveTrackId = async (title, artist) => {
       const key = `${title}\u0000${artist}`;
+      if (!isAnalyticsEnabled()) return null;
       if (trackCache.current.has(key)) return trackCache.current.get(key);
       if (!window.__junubifySupabase) return null;
       const { data } = await window.__junubifySupabase.from('tracks').select('id').eq('status', 'published').eq('title', title).eq('artist_name', artist).limit(1).maybeSingle();
@@ -24,6 +25,7 @@ function AnalyticsTracker() {
 
     const onSearch = (event) => {
       if (!event.target.matches('.search')) return;
+      if (!isAnalyticsEnabled()) return;
       window.clearTimeout(searchTimer.current);
       const query = event.target.value.trim();
       if (query.length < 2) return;
@@ -35,7 +37,7 @@ function AnalyticsTracker() {
       }, 1200);
     };
 
-    const audio = document.querySelector('.player audio');
+    const audio = document.getElementById('junubify-main-audio');
     const onAudioTime = async () => {
       if (!audio || audio.paused || audio.currentTime < 30) return;
       const player = document.querySelector('.player-track');
@@ -74,7 +76,7 @@ function AnalyticsTracker() {
       audio?.removeEventListener('play', onAudioPlay);
     };
   }, []);
-  return <a className="analytics-launcher" href="/analytics.html" aria-label="Open privacy-first analytics">Analytics</a>;
+  return null;
 }
 
 const host = document.createElement('div');

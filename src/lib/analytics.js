@@ -1,7 +1,16 @@
 import { supabase } from './supabase.js';
 
 const REGION_STORAGE_KEY = 'junubify-analytics-region';
+const ANALYTICS_ENABLED_KEY = 'junubify-analytics-enabled';
 const ALLOWED_REGIONS = new Set(['south_sudan', 'east_africa', 'africa_other', 'europe', 'north_america', 'other']);
+
+export function isAnalyticsEnabled() {
+  try {
+    return localStorage.getItem(ANALYTICS_ENABLED_KEY) !== 'false';
+  } catch {
+    return false;
+  }
+}
 
 export function getAnalyticsRegion() {
   try {
@@ -18,7 +27,7 @@ export function setAnalyticsRegion(region) {
 }
 
 export async function recordAnalyticsEvent(eventName, trackId = null) {
-  if (!supabase || !['play', 'like', 'search'].includes(eventName)) return;
+  if (!supabase || !isAnalyticsEnabled() || !['play', 'like', 'search'].includes(eventName)) return;
   try {
     await supabase.rpc('record_analytics_event', {
       p_event_name: eventName,

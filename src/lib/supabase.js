@@ -10,7 +10,7 @@ const configuredAdminEmails = (import.meta.env.VITE_ADMIN_EMAILS || '')
 export const supabaseConfigured = Boolean(url && anonKey);
 export const adminEmails = configuredAdminEmails;
 export const supabase = supabaseConfigured ? createClient(url, anonKey, {
-  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
+  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'pkce' },
 }) : null;
 
 export const isTrustedAdminSession = (session) => {

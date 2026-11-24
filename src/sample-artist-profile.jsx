@@ -2,33 +2,33 @@ import React, { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { ArrowUpRight, BadgeCheck, CalendarDays, Disc3, ExternalLink, Instagram, Mail, MapPin, Music2, Play, Share2, X, Youtube } from 'lucide-react';
 import yungBwoyTrack from '../Yung_Bwoy__They_Don’t_want__official_audio___ft_Dogg_Hustle(256k).mp3';
-import doggHustleTrack from '../Dogg_Hustle_Faded_official_lyrics_(256k)(1).mp3';
+import ogTrack from '../CHIEF BUTEE - OG.mp3';
 import './sample-artist-profile.css';
 
 const songs = [
   {
     title: 'They Don’t Want',
     artist: 'Yung Bwoy',
-    feature: 'feat. Dogg Hustle',
-    type: 'Single · Sample release',
+    feature: 'Featured release',
+    type: 'Single',
     genre: 'Hip-Hop / Afrobeat',
     audio: yungBwoyTrack,
     art: 'they-dont-want',
     alt: 'Illustrative They Don’t Want single cover, designed for the Junubify demo',
     lyric: 'They doubt the road, still we rise with the sun.\nOne voice, one dream—till the work is done.',
-    credit: 'Yung Bwoy · lead artist | Dogg Hustle · featured artist',
+    credit: 'Yung Bwoy · lead artist',
   },
   {
-    title: 'Faded',
-    artist: 'Dogg Hustle',
-    feature: 'Collaborator spotlight',
-    type: 'Single · Sample release',
-    genre: 'Hip-Hop',
-    audio: doggHustleTrack,
-    art: 'faded',
-    alt: 'Illustrative Faded single cover, designed for the Junubify demo',
-    lyric: 'City lights blur as the night rolls by.\nI find my way when I look inside.',
-    credit: 'Dogg Hustle · lead artist',
+    title: 'O.G.',
+    artist: 'Chief Butee',
+    feature: 'Featured release',
+    type: 'Single',
+    genre: 'Afrobeat',
+    audio: ogTrack,
+    art: 'og',
+    alt: 'O.G. single artwork for Chief Butee',
+    lyric: 'A South Sudan sound, carried with pride.',
+    credit: 'Chief Butee · lead artist',
   },
 ];
 
@@ -44,6 +44,9 @@ function SampleArtwork({ song }) {
 function SampleArtistProfile() {
   const [open, setOpen] = useState(false);
   const [notice, setNotice] = useState('');
+  const verified = window.localStorage.getItem('junubify-artist-profile-verified') === 'true';
+
+  if (!verified) return null;
 
   useEffect(() => {
     if (!open) return undefined;
@@ -103,7 +106,7 @@ function SampleArtistProfile() {
               <details className="sample-lyrics"><summary>Sample lyrics <span>Original demo text—not transcribed lyrics</span></summary><p>{song.lyric}</p></details>
               <p className="sample-song-credit">{song.credit}</p>
             </article>)}</div>
-            <p className="sample-profile-caveat">The audio links use the example files supplied in the Junubify repository. “Faded” is credited to Dogg Hustle in the filename and is shown as a collaborator spotlight, not as a Yung Bwoy solo release. Verify ownership, credits, release details, and permissions before public distribution.</p>
+            <p className="sample-profile-caveat">The playable releases use the Chief Butee and Yung Bwoy audio supplied in the Junubify repository. Public profile details and credits remain subject to artist verification.</p>
           </section>
 
           <section className="sample-profile-section sample-profile-details">
