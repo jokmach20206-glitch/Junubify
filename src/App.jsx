@@ -101,6 +101,12 @@ function handleCoverError(event) {
   }
 }
 
+function trackText(track) {
+  return [track?.title, track?.artist, track?.genre, track?.album]
+    .filter((value) => typeof value === 'string')
+    .join(' ')
+    .toLowerCase();
+}
 
 export default function App() {
   const [tab, setTab] = useState('discover');
