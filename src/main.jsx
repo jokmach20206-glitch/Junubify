@@ -6,6 +6,7 @@ import ProductionReadiness from './production.jsx';
 import './styles.css';
 import './mobile.css';
 import './search-enhancements.css';
+import './professional-search.css';
 import './enhancements.css';
 import './trending-offline.css';
 
