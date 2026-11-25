@@ -7,6 +7,7 @@ import './styles.css';
 import './mobile.css';
 import './search-enhancements.css';
 import './enhancements.css';
+import './trending-offline.css';
 
 class AppErrorBoundary extends React.Component {
   constructor(props) {
