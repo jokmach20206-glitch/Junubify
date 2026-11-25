@@ -1,5 +1,13 @@
-.env.local
-.env.*.local
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# Dependencies and build output
+node_modules/
+dist/
+
+# Android generated files
 android/.gradle/
 android/local.properties
 android/**/build/
