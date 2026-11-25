@@ -23,3 +23,6 @@
 .follow-artist {
   display: none !important;
 }
+
+img { height: auto; }
+svg { flex: 0 0 auto; }

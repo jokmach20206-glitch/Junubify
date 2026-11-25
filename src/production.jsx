@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Menu, X } from 'lucide-react';
+import { EllipsisVertical, X } from 'lucide-react';
 import './production.css';
 
 const SITE_URL = 'https://junubify.vercel.app';
@@ -289,7 +289,7 @@ export default function ProductionReadiness() {
   return <>
     {header && createPortal(
       <button className="mobile-menu-toggle" type="button" aria-label={menuOpen ? 'Close navigation menu' : 'Open navigation menu'} aria-expanded={menuOpen} onClick={() => setMenuOpen((open) => !open)}>
-        {menuOpen ? <X size={21} /> : <Menu size={21} />}
+        {menuOpen ? <X size={21} /> : <EllipsisVertical size={21} />}
       </button>, header,
     )}
     {menuOpen && createPortal(<button className="mobile-menu-backdrop" type="button" aria-label="Close navigation menu" onClick={() => setMenuOpen(false)} />, document.body)}
