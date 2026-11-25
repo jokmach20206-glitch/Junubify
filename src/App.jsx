@@ -86,7 +86,8 @@ function formatTime(seconds) {
   if (!Number.isFinite(seconds) || seconds < 0) return '0:00';
   const whole = Math.floor(seconds);
   return `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, '0')}`;
-=======
+}
+
 function getTrackCoverFallback(track) {
   if (typeof track?.cover === 'string' && track.cover.trim()) return track.cover;
   if (typeof track?.coverUrl === 'string' && track.coverUrl.trim()) return track.coverUrl;

@@ -26,11 +26,11 @@ Before launch, apply all migrations, configure a trusted administrator, add rate
 
 ## Deploy to Vercel
 
-`vercel.json` configures the Vite build (`npm run build`, output `dist`) and SPA fallback. Import `Prototype20204/Junubify2` in Vercel, use the repository root as Root Directory, and deploy the `main` branch. In Vercel project settings, add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` for the environments you intend to use, then redeploy. Add the deployed site URL to Supabase Auth's allowed redirect URLs.
+`vercel.json` configures the Vite build (`npm run build`, output `dist`) and rewrites the legal pages to the SPA entry point. Connect the Vercel project to `jokmach20206-glitch/Junubify`, use the repository root as Root Directory, and deploy the `main` branch. In Vercel project settings, add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` for the environments you intend to use, then redeploy. Add the deployed site URL to Supabase Auth's allowed redirect URLs.
 
-The GitHub repository homepage is `https://junubify.vercel.app`, while an older screenshot showed `https://junubifysounds.vercel.app`. Verify which Vercel project owns the URL you are opening. In Vercel, inspect the latest deployment's source repository, branch, and commit, then assign the desired domain to that project under **Settings → Domains**. A push to GitHub only updates a Vercel project if that project is connected to this repository and branch.
+The canonical site is `https://junubify.vercel.app`, while an older screenshot showed `https://junubifysounds.vercel.app`. If the site still shows an old version or the startup screen, inspect the latest Vercel deployment's source repository, branch, commit, and build logs. It must deploy this repository's `main` branch; assign the desired domain to that project under **Settings → Domains**. A push to GitHub only updates a Vercel project if that project is connected to this repository and branch.
 
-If the app error screen appears, it displays the browser-side exception message to help diagnose the actual failure. Confirm the deployment is from the latest `main` commit and open the deployment's own URL, not an older deployment alias.
+If the startup screen remains, open the browser console and check the Vercel deployment build output for failed module requests or runtime errors. Confirm the deployment is from the latest `main` commit and open that deployment's own URL, not an older deployment alias.
 
 ## Prepare the Android app
 
