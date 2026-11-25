@@ -33,8 +33,8 @@
     <script>
       window.__junubifyStartupTimer = window.setTimeout(() => {
         const status = document.getElementById('startup-status');
-        if (status) status.innerHTML = '<div><strong>Junubify did not start</strong><p>The app script failed to load. Check the latest Vercel deployment build output and confirm the project root is correct.</p></div>';
-      }, 8000);
+        if (status) status.innerHTML = '<div><strong>Junubify is taking longer to load</strong><p>Check your internet connection, then reload the page. If the problem continues, try an updated version of Chrome.</p></div>';
+      }, 30000);
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => navigator.serviceWorker.register('/service-worker.js').catch((error) => console.warn('Offline support could not be enabled:', error)));
       }

@@ -9,6 +9,7 @@ import './search-enhancements.css';
 import './professional-search.css';
 import './enhancements.css';
 import './trending-offline.css';
+import './mobile-compat.css';
 
 class AppErrorBoundary extends React.Component {
   constructor(props) {
