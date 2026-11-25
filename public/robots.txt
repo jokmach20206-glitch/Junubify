@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /admin.html
+Disallow: /admin-confirm.html
+Disallow: /analytics.html
+Sitemap: https://junubify.vercel.app/sitemap.xml

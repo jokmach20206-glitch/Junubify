@@ -1,0 +1,88 @@
+/* Site-wide legal pages, reserved ad inventory, and accessible mobile navigation. */
+html { scroll-padding-top: 88px; }
+body { overflow-x: clip; }
+button, a, input, select, textarea { font: inherit; }
+:focus-visible { outline: 3px solid #70d7a3; outline-offset: 3px; }
+
+/* The existing navigation remains unchanged on desktop. On smaller screens the
+   menu button reveals it as a high-contrast, keyboard-dismissible drawer. */
+.mobile-menu-toggle { display: none; }
+.mobile-menu-backdrop { display: none; }
+@media (max-width: 760px) {
+  .mobile-menu-toggle {
+    order: 2; display: grid; flex: 0 0 44px; width: 44px; height: 44px;
+    place-items: center; border: 1px solid var(--line); border-radius: 12px;
+    color: var(--text); background: var(--surface); cursor: pointer;
+  }
+  .topbar[data-menu-open='true'] .nav-tabs {
+    position: fixed; z-index: 81; top: max(66px, env(safe-area-inset-top)); right: 12px; left: 12px;
+    display: grid; grid-template-columns: minmax(0, 1fr); gap: 5px; width: auto;
+    max-height: min(72vh, 480px); overflow-y: auto; padding: 10px;
+    border: 1px solid var(--line); border-radius: 16px; background: var(--surface);
+    box-shadow: 0 18px 60px rgba(0,0,0,.4);
+  }
+  .topbar[data-menu-open='true'] .nav-tabs button { justify-content: flex-start; min-height: 48px; padding: 9px 14px; font-size: 14px; }
+  .mobile-menu-backdrop { position: fixed; z-index: 79; inset: 0; display: block; width: 100%; height: 100%; border: 0; background: rgba(3,8,6,.45); }
+  .topbar[data-menu-open='true'] { z-index: 80; }
+}
+
+/* Keep interactive targets comfortably tappable without changing the compact
+   audio controls or artwork buttons. */
+@media (pointer: coarse) {
+  .nav-tabs button, .account-menu-button, .button, .hero-actions button,
+  .track-action, .mini-play, .genre-detail-back, .player-back-button,
+  .mobile-player-back, .mobile-player-more, .mobile-like,
+  .site-footer a, .legal-home-link { min-width: 44px; min-height: 44px; }
+}
+
+.ad-banner {
+  position: relative; display: grid; width: 100%; min-width: 0; place-items: center;
+  margin: 22px 0; overflow: hidden; border: 1px dashed rgba(158,173,169,.25);
+  border-radius: 12px; background: color-mix(in srgb, var(--surface, #101b18) 68%, transparent);
+}
+.ad-banner--horizontal { min-height: 100px; }
+.ad-banner--rectangle { min-height: 280px; }
+.ad-banner .adsbygoogle { display: block; width: 100%; min-height: inherit; }
+.ad-banner-fallback { color: var(--muted, #9eada9); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; }
+.site-ad-mount { min-width: 0; }
+
+.site-footer { display: grid; gap: 12px; width: min(1120px, calc(100% - 36px)); margin: 20px auto 110px; padding: 26px 0 10px; border-top: 1px solid var(--line, rgba(207,238,226,.13)); color: var(--muted, #9eada9); }
+.site-footer-brand { width: fit-content; color: var(--text, #eef7f3); font-weight: 800; letter-spacing: .12em; text-decoration: none; }
+.site-footer p, .site-footer small { margin: 0; font-size: 12px; line-height: 1.5; }
+.site-footer nav { display: flex; flex-wrap: wrap; gap: 6px 18px; }
+.site-footer nav a, .legal-content a { color: var(--green, #70d7a3); text-underline-offset: 3px; }
+.site-footer nav a { display: inline-flex; align-items: center; min-height: 44px; }
+
+.legal-site { min-height: 100vh; display: flex; flex-direction: column; color: var(--text, #eef7f3); background: var(--bg, #08110f); }
+.legal-header { position: sticky; z-index: 10; top: 0; display: flex; align-items: center; justify-content: space-between; min-height: 68px; padding: 10px max(18px, calc((100vw - 960px)/2)); border-bottom: 1px solid var(--line, rgba(207,238,226,.13)); background: var(--surface, #101b18); }
+.legal-home-link { display: inline-flex; min-height: 44px; align-items: center; padding: 0 12px; color: var(--text, #eef7f3); text-decoration: none; }
+.legal-content { width: min(760px, calc(100% - 36px)); flex: 1; margin: 0 auto; padding: clamp(32px, 7vw, 72px) 0 64px; line-height: 1.7; overflow-wrap: anywhere; }
+.legal-content h1 { margin: 8px 0 24px; font-size: clamp(34px, 7vw, 56px); line-height: 1.08; letter-spacing: -.04em; }
+.legal-content h2 { margin: 32px 0 8px; font-size: clamp(20px, 4vw, 25px); line-height: 1.25; }
+.legal-content p { color: var(--muted, #9eada9); }
+.legal-content strong { color: var(--text, #eef7f3); }
+.legal-content li { color: var(--muted, #9eada9); }
+.legal-kicker { color: var(--green, #70d7a3); font-size: 11px; font-weight: 800; letter-spacing: .14em; }
+.legal-note { padding: 14px; border: 1px solid var(--line, rgba(207,238,226,.13)); border-radius: 10px; font-size: 13px; }
+.legal-content code { overflow-wrap: anywhere; }
+.contact-form { display: grid; gap: 16px; margin: 26px 0; }
+.contact-form label { display: grid; gap: 7px; color: var(--text, #eef7f3); font-size: 14px; font-weight: 700; }
+.contact-form input, .contact-form textarea { width: 100%; min-height: 48px; padding: 12px; border: 1px solid var(--line, rgba(207,238,226,.13)); border-radius: 9px; color: var(--text, #eef7f3); background: var(--surface, #101b18); }
+.contact-form textarea { min-height: 140px; resize: vertical; }
+.contact-form button { min-height: 48px; width: fit-content; padding: 0 20px; border: 0; border-radius: 9px; color: #07110f; background: var(--green, #70d7a3); font-weight: 800; cursor: pointer; }
+.contact-form .contact-success { padding: 12px; border-radius: 9px; background: rgba(112,215,163,.1); }
+.contact-form .contact-copy-label { font-weight: 600; }
+.legal-site .site-footer { margin-top: 0; margin-bottom: 0; padding-bottom: max(22px, env(safe-area-inset-bottom)); }
+html[data-legal-page='true'] .app-shell { display: none !important; }
+
+@media (max-width: 520px) {
+  .legal-header { padding-right: 12px; padding-left: 12px; }
+  .site-footer { width: calc(100% - 24px); margin-bottom: 96px; }
+  .legal-content { width: calc(100% - 28px); }
+  .contact-form button { width: 100%; }
+  .ad-banner--horizontal { min-height: 90px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { scroll-behavior: auto !important; }
+}

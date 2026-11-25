@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.jsx';
 import JunubifyEnhancements from './enhancements.jsx';
+import ProductionReadiness from './production.jsx';
 import './styles.css';
 import './mobile.css';
 import './search-enhancements.css';
@@ -54,6 +55,7 @@ createRoot(container).render(
       <>
         <App />
         <JunubifyEnhancements />
+        <ProductionReadiness />
       </>
     </AppErrorBoundary>
   </React.StrictMode>,
