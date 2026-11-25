@@ -1,3 +1,4 @@
+
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
@@ -85,38 +86,20 @@ function formatTime(seconds) {
   if (!Number.isFinite(seconds) || seconds < 0) return '0:00';
   const whole = Math.floor(seconds);
   return `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, '0')}`;
+=======
+function getTrackCoverFallback(track) {
+  if (typeof track?.cover === 'string' && track.cover.trim()) return track.cover;
+  if (typeof track?.coverUrl === 'string' && track.coverUrl.trim()) return track.coverUrl;
+  return fallbackCover;
+
 }
 
-function trackText(track) {
-  return [track?.title, track?.artist, track?.genre, track?.album]
-    .filter((value) => typeof value === 'string')
-    .join(' ')
-    .toLowerCase();
-}
-
-async function copyShareLink(url) {
-  if (navigator.clipboard?.writeText) {
-    try {
-      await navigator.clipboard.writeText(url);
-      return true;
-    } catch {
-      // Try the legacy selection-based copy path below.
-    }
-  }
-
-  const field = document.createElement('textarea');
-  field.value = url;
-  field.setAttribute('readonly', '');
-  field.style.position = 'fixed';
-  field.style.opacity = '0';
-  document.body.appendChild(field);
-  field.select();
-  try {
-    return document.execCommand('copy');
-  } finally {
-    field.remove();
+function handleCoverError(event) {
+  if (event.currentTarget.src !== new URL(fallbackCover, window.location.href).href) {
+    event.currentTarget.src = fallbackCover;
   }
 }
+
 
 export default function App() {
   const [tab, setTab] = useState('discover');
