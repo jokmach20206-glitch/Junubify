@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Download, HardDriveDownload, Music2, Play, Trash2, UserRound, X } from 'lucide-react';
+import { Check, Download, HardDriveDownload, Music2, Play, Trash2, UserRound, X } from 'lucide-react';
+import { createTrackAudioUrl } from './lib/catalog.js';
 
 const DB_NAME = 'junubify-offline-library';
 const STORE_NAME = 'tracks';
@@ -33,6 +34,22 @@ async function getOfflineTracks() {
   });
 }
 
+async function hasOfflineTrack(id) {
+  const db = await openOfflineDb();
+  return new Promise((resolve, reject) => {
+    const request = db.transaction(STORE_NAME, 'readonly').objectStore(STORE_NAME).get(id);
+    request.onsuccess = () => {
+      db.close();
+      resolve(Boolean(request.result));
+    };
+    request.onerror = () => {
+      db.close();
+      reject(request.error || new Error('Could not check offline songs.'));
+    };
+  });
+}
+
+
 async function saveOfflineTrack(track) {
   const db = await openOfflineDb();
   return new Promise((resolve, reject) => {
@@ -54,6 +71,79 @@ async function deleteOfflineTrack(id) {
 function showNotice(message) {
   window.dispatchEvent(new CustomEvent('junubify-enhancement-notice', { detail: message }));
 }
+
+export function OfflineDownloadButton({ track }) {
+  const [downloading, setDownloading] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [storageAvailable, setStorageAvailable] = useState(true);
+  const locked = track.requiresSubscription === true;
+
+  useEffect(() => {
+    let active = true;
+    const refreshSavedState = () => {
+      hasOfflineTrack(track.id).then((exists) => {
+        if (active) {
+          setSaved(exists);
+          setStorageAvailable(true);
+        }
+      }).catch(() => {
+        if (active) setStorageAvailable(false);
+      });
+    };
+    refreshSavedState();
+    window.addEventListener('junubify-offline-library-updated', refreshSavedState);
+    return () => {
+      active = false;
+      window.removeEventListener('junubify-offline-library-updated', refreshSavedState);
+    };
+  }, [track.id]);
+
+  const downloadTrack = async () => {
+    if (locked || saved) return;
+    setDownloading(true);
+    try {
+      const source = track.audioPath ? await createTrackAudioUrl(track.audioPath) : track.audioUrl;
+      if (!source) throw new Error('Audio is not available for this track.');
+      const response = await fetch(source);
+      if (!response.ok) throw new Error('The audio could not be downloaded. Check your connection and try again.');
+      const blob = await response.blob();
+      if (!blob.size) throw new Error('The audio file was empty. Try again.');
+
+      await saveOfflineTrack({
+        id: track.id,
+        title: track.title || 'Junubify track',
+        artist: track.artist || 'Junubify artist',
+        cover: track.cover || '',
+        blob,
+        savedAt: Date.now(),
+        contentType: blob.type || 'audio/mpeg',
+      });
+      window.dispatchEvent(new Event('junubify-offline-library-updated'));
+      showNotice(`${track.title || 'This song'} is ready for offline listening.`);
+    } catch (error) {
+      showNotice(error.message || 'Could not save this song offline.');
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  return (
+    <button
+      className="track-action offline-download-button"
+      type="button"
+      onClick={downloadTrack}
+      disabled={downloading || locked || saved || !storageAvailable}
+      aria-label={saved
+        ? `${track.title || 'Song'} is saved for offline listening`
+        : storageAvailable ? `Save ${track.title || 'song'} for offline listening` : 'Offline storage is unavailable'}
+      title={locked ? 'Subscription required; downloads are unavailable' : saved ? 'Saved for offline listening' : storageAvailable ? 'Save for offline listening' : 'Offline storage is unavailable in this browser'}
+    >
+      {saved ? <Check size={15} /> : locked || !storageAvailable ? <HardDriveDownload size={15} /> : <Download size={15} />}
+      <span className="offline-button-label">{downloading ? 'Saving…' : saved ? 'Saved' : locked ? 'Locked' : storageAvailable ? 'Download' : 'Unavailable'}</span>
+    </button>
+  );
+}
+
 
 function applyProfilePhoto(photo) {
   document.querySelectorAll('.account-avatar, .account-menu-avatar').forEach((avatar) => {
@@ -212,7 +302,6 @@ export default function JunubifyEnhancements() {
     };
     const observer = new MutationObserver(() => {
       attachProfilePhotoControl();
-      attachDownloadButtons();
       const photo = window.localStorage.getItem(PROFILE_KEY);
       if (photo) applyProfilePhoto(photo);
       document.querySelectorAll('.genre-card-track-preview').forEach((preview) => {
@@ -223,7 +312,6 @@ export default function JunubifyEnhancements() {
     window.addEventListener('junubify-enhancement-notice', displayNotice);
     window.addEventListener('junubify-offline-library-updated', refreshOfflineTracks);
     attachProfilePhotoControl();
-    attachDownloadButtons();
     refreshOfflineTracks();
     return () => {
       observer.disconnect();
@@ -244,6 +332,7 @@ export default function JunubifyEnhancements() {
   const removeOfflineTrack = async (track) => {
     await deleteOfflineTrack(track.id);
     await refreshOfflineTracks();
+    window.dispatchEvent(new Event('junubify-offline-library-updated'));
     if (activeTrack?.id === track.id) {
       offlineAudioRef.current?.pause();
       setActiveTrack(null);

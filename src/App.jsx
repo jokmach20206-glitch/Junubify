@@ -7,6 +7,7 @@ import {
   Search, Share2, ShieldCheck, Shuffle, SkipBack, SkipForward, Smartphone, Sparkles,
   Sun, Timer, TrendingUp, Upload, UserRound, Volume2, Wallet,
 } from 'lucide-react';
+import { OfflineDownloadButton } from './enhancements.jsx';
 import ogAudioUrl from '../CHIEF BUTEE - OG.mp3';
 import ogCoverUrl from '../1794694060126.jpg';
 import yungAudioUrl from '../Yung_Bwoy__They_Don’t_want__official_audio___ft_Dogg_Hustle(256k).mp3';
@@ -36,20 +37,7 @@ const genres = [
   { name: 'Gospel & Choir', filter: 'Gospel', subtitle: 'Choirs and voices from home', color: 'genre-blue', cover: 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&q=80&w=800' },
   { name: 'Oldies & Classics', filter: 'Oldies', subtitle: 'Timeless favorites and legacy sounds', color: 'genre-gold', cover: 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&q=80&w=800' },
 ];
-const fallbackTracks = genres.flatMap((genre) => [
-  {
-    ...initialTrack,
-    id: `chief-butee-og-${genre.filter.toLowerCase()}`,
-    genre: genre.filter,
-    album: genre.name,
-  },
-  {
-    ...yungTrack,
-    id: `yung-bwoy-they-dont-want-${genre.filter.toLowerCase()}`,
-    genre: genre.filter,
-    album: genre.name,
-  },
-]);
+const fallbackTracks = [initialTrack, yungTrack];
 const playlists = [
   { id: 'featured-og', name: 'O.G. · Chief Butee', subtitle: 'Featured release', cover: ogCoverUrl, genre: 'Afrobeat' },
 ];
@@ -289,7 +277,7 @@ export default function App() {
     const genre = typeof track?.genre === 'string' ? track.genre : '';
     return trackText(track).includes(query.trim().toLowerCase())
       && (!genreFilter || genre.toLowerCase().includes(genreFilter.toLowerCase()));
-  }), [catalogTracks, query, genreFilter]);
+  }).sort((a, b) => Number(b.plays || 0) - Number(a.plays || 0)), [catalogTracks, query, genreFilter]);
   const likedCatalog = [...new Map([...catalogTracks, ...Object.values(likedTrackSnapshots)]
     .filter((track) => track && typeof track.id === 'string' && Boolean(likedTracks[track.id]))
     .map((track) => [`${track.title}\u0000${track.artist}`, track])).values()];
@@ -628,14 +616,44 @@ export default function App() {
             {playlists.map((playlist) => <article className="playlist-card" key={playlist.id}><div className="playlist-art" style={{ backgroundImage: `linear-gradient(transparent, rgba(5, 10, 15, .76)), url(${playlist.cover})` }}><span className="playlist-tag">Featured release</span><button className="playlist-play" onClick={() => openPlaylist(playlist, true)} aria-label={`Play ${playlist.name}`}><Play size={18} fill="currentColor" /></button></div><div className="playlist-body"><strong>{playlist.name}</strong><small>{playlist.subtitle}</small><button className="button secondary playlist-button" onClick={() => openPlaylist(playlist)}>Explore release</button></div></article>)}
           </div></section>
 
-          <section className="trending-section" id="catalog"><button type="button" className="now-trending-ticker" onClick={() => playTrack(initialTrack)} aria-label="Play O.G. by Chief Butee"><span>♪ NOW TRENDING · O.G. · CHIEF BUTEE · SOUTH SUDAN SOUNDS · CLICK TO PLAY</span></button><div className="section-heading"><div><span className="eyebrow">THE JUNUBIFY CATALOG</span><h2><TrendingUp size={22} /> {query.trim() ? `Search results for “${query.trim()}”` : genreFilter ? `${genreFilter} tracks` : 'Trending tracks in Juba'}</h2></div><span className="muted">{genreFilter && <button className="clear-filter" onClick={() => {
-            setGenreFilter('');
-            const url = new URL(window.location.href);
-            url.searchParams.delete('genre');
-            window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
-          }}>Clear genre · </button>}{visibleTracks.length} tracks</span></div>
-            <div className="hot-badge"><span aria-hidden="true">✦</span> HOT RIGHT NOW</div>{loadingCatalog && <p className="muted catalog-status">Loading the published catalog…</p>}{catalogError && <div className="notice-box"><b>Catalog unavailable</b><p>{catalogError}</p><button className="button secondary" onClick={refreshCatalog}>Try again</button></div>}
-            <section className="track-list">{visibleTracks.map((track, index) => <article className="track-row" key={track.id}><span className="track-number">{String(index + 1).padStart(2, '0')}</span><button className="track-art" onClick={() => playTrack(track)} aria-label={`Play ${track.title}`}><img src={track.cover || fallbackCover} alt="" /></button><div className="track-meta"><strong>{track.title || 'Untitled track'}</strong><span>{track.artist || 'Junubify artist'} · {track.genre || 'Music'}</span></div><div className="track-stats"><span><Heart size={14} /> {Number(track.plays || 0).toLocaleString()}</span><button className="mini-play" onClick={() => playTrack(track)} aria-label={`Play ${track.title}`}>{playing?.id === track.id && isPlaying ? <Pause size={15} /> : <Play size={15} />}</button><button className={`track-action ${likedTracks[track.id] ? 'liked' : ''}`} onClick={() => toggleLike(track.id)} aria-label={likedTracks[track.id] ? 'Unlike track' : 'Like track'} aria-pressed={Boolean(likedTracks[track.id])}><Heart size={17} fill={likedTracks[track.id] ? 'currentColor' : 'none'} /></button><button className="track-action" onClick={() => shareTrack(track)} aria-label="Share track"><Share2 size={16} /></button></div></article>)}</section>
+          <section className="trending-section" id="catalog">
+            <button type="button" className="now-trending-ticker" onClick={() => playTrack(initialTrack)} aria-label="Play O.G. by Chief Butee">
+              <span className="trending-ticker-icon" aria-hidden="true"><Music2 size={21} /></span>
+              <span className="trending-ticker-copy"><small>JUBA FEATURE</small><strong>Now trending</strong><span>O.G. · Chief Butee · South Sudan sounds</span></span>
+              <span className="trending-ticker-play" aria-hidden="true"><Play size={17} fill="currentColor" /></span>
+            </button>
+            <div className="section-heading trending-heading">
+              <div>
+                <span className="eyebrow"><AudioLines size={14} /> JUBA&apos;S SOUNDTRACK</span>
+                <h2><Music2 size={22} /> {query.trim() ? `Search results for “${query.trim()}”` : genreFilter ? `${genreFilter} tracks` : 'Trending tracks in Juba'}</h2>
+              </div>
+              <div className="trending-heading-meta">
+                {genreFilter && <button className="clear-filter" onClick={() => {
+                  setGenreFilter('');
+                  const url = new URL(window.location.href);
+                  url.searchParams.delete('genre');
+                  window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
+                }}>Clear genre · </button>}
+                <span className="trending-track-count"><Radio size={14} /> {visibleTracks.length} tracks</span>
+              </div>
+            </div>
+            <div className="hot-badge"><TrendingUp size={14} aria-hidden="true" /> {query.trim() || genreFilter ? 'Juba music picks' : 'HOT RIGHT NOW IN JUBA'}</div>
+            {loadingCatalog && <p className="muted catalog-status">Loading the published catalog…</p>}
+            {catalogError && <div className="notice-box"><b>Catalog unavailable</b><p>{catalogError}</p><button className="button secondary" onClick={refreshCatalog}>Try again</button></div>}
+            <section className="track-list">
+              {visibleTracks.map((track, index) => <article className="track-row" key={track.id}>
+                <span className="track-number">{String(index + 1).padStart(2, '0')}</span>
+                <button className="track-art" onClick={() => playTrack(track)} aria-label={`Play ${track.title}`}><img src={track.cover || fallbackCover} alt="" /></button>
+                <div className="track-meta"><strong>{track.title || 'Untitled track'}</strong><span>{track.artist || 'Junubify artist'} · {track.genre || 'Music'}</span></div>
+                <div className="track-stats">
+                  <span><Heart size={14} /> {Number(track.plays || 0).toLocaleString()}</span>
+                  <button className="mini-play" onClick={() => playTrack(track)} aria-label={`Play ${track.title}`}>{playing?.id === track.id && isPlaying ? <Pause size={15} /> : <Play size={15} />}</button>
+                  <button className={`track-action ${likedTracks[track.id] ? 'liked' : ''}`} onClick={() => toggleLike(track.id)} aria-label={likedTracks[track.id] ? 'Unlike track' : 'Like track'} aria-pressed={Boolean(likedTracks[track.id])}><Heart size={17} fill={likedTracks[track.id] ? 'currentColor' : 'none'} /></button>
+                  <button className="track-action" onClick={() => shareTrack(track)} aria-label="Share track"><Share2 size={16} /></button>
+                  <OfflineDownloadButton track={track} />
+                </div>
+              </article>)}
+            </section>
             {!visibleTracks.length && <div className="empty-catalog"><Music2 size={26} /><b>No tracks match this filter.</b><span>Choose another genre or clear your search.</span></div>}
           </section>
           <section className="upload-promo"><div><span className="eyebrow">ARE YOU AN ARTIST?</span><h2>Bring your sound to Junubify.</h2><p>Submit your music securely for review in Artist Studio.</p></div><button className="button primary" onClick={() => setTab('studio')}><Upload size={16} /> Open studio</button></section>
