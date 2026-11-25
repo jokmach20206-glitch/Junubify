@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { EllipsisVertical, X } from 'lucide-react';
 import './production.css';
@@ -26,9 +26,11 @@ const pages = {
   },
 };
 
-export function AdBanner({ slotId, format = 'horizontal' }) {
-  const client = import.meta.env.VITE_ADSENSE_CLIENT;
-  const active = Boolean(client && slotId);
+export function AdBanner({ format = 'horizontal' }) {
+  const client = import.meta.env.VITE_ADSENSE_CLIENT?.trim() || '';
+  const configuredSlotId = import.meta.env.VITE_ADSENSE_SLOT_ID?.trim() || '';
+  const active = /^ca-pub-\d{16}$/.test(client) && /^\d+$/.test(configuredSlotId);
+  const adRef = useRef(null);
 
   useEffect(() => {
     if (!active) return undefined;
@@ -42,7 +44,7 @@ export function AdBanner({ slotId, format = 'horizontal' }) {
       script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${encodeURIComponent(client)}`;
       document.head.appendChild(script);
     }
-    const ad = document.querySelector(`[data-ad-slot="${CSS.escape(slotId)}"]`);
+    const ad = adRef.current;
     if (ad && !ad.dataset.requested) {
       try {
         (window.adsbygoogle = window.adsbygoogle || []).push({});
@@ -52,7 +54,7 @@ export function AdBanner({ slotId, format = 'horizontal' }) {
       }
     }
     return undefined;
-  }, [active, client, slotId]);
+  }, [active, client, configuredSlotId]);
 
   return (
     <aside className={`ad-banner ad-banner--${format}`} aria-label="Advertisement">
@@ -61,9 +63,10 @@ export function AdBanner({ slotId, format = 'horizontal' }) {
           className="adsbygoogle"
           style={{ display: 'block' }}
           data-ad-client={client}
-          data-ad-slot={slotId}
+          data-ad-slot={configuredSlotId}
           data-ad-format={format === 'horizontal' ? 'horizontal' : 'rectangle'}
           data-full-width-responsive="true"
+          ref={adRef}
         />
       ) : (
         <span className="ad-banner-fallback">Advertisement</span>
@@ -293,7 +296,7 @@ export default function ProductionReadiness() {
       </button>, header,
     )}
     {menuOpen && createPortal(<button className="mobile-menu-backdrop" type="button" aria-label="Close navigation menu" onClick={() => setMenuOpen(false)} />, document.body)}
-    {adTarget && createPortal(<AdBanner slotId="junubify-discover-horizontal" format="horizontal" />, adTarget)}
+    {adTarget && createPortal(<AdBanner format="horizontal" />, adTarget)}
     {footerTarget && createPortal(<SiteFooter />, footerTarget)}
   </>;
 }
