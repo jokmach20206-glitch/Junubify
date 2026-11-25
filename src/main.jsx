@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.jsx';
+import JunubifyEnhancements from './enhancements.jsx';
 import './styles.css';
 import './mobile.css';
 import './search-enhancements.css';
+import './enhancements.css';
 
 class AppErrorBoundary extends React.Component {
   constructor(props) {
@@ -48,7 +50,12 @@ if (!container) {
 
 createRoot(container).render(
   <React.StrictMode>
-    <AppErrorBoundary><App /></AppErrorBoundary>
+    <AppErrorBoundary>
+      <>
+        <App />
+        <JunubifyEnhancements />
+      </>
+    </AppErrorBoundary>
   </React.StrictMode>,
 );
 
