@@ -10,20 +10,36 @@ button, a, input, select, textarea { font: inherit; }
 .mobile-menu-backdrop { display: none; }
 @media (max-width: 760px) {
   .mobile-menu-toggle {
-    order: 2; display: grid; flex: 0 0 44px; width: 44px; height: 44px;
+    order: 2; display: grid; flex: 0 0 42px; width: 42px; height: 42px;
     place-items: center; border: 1px solid var(--line); border-radius: 12px;
     color: var(--text); background: var(--surface); cursor: pointer;
   }
+  .topbar { gap: 8px; padding: 8px 12px; }
+  .topbar .brand { order: 0; min-width: 0; }
+  .topbar .account-menu-button { order: 1; margin-left: auto; }
+  .topbar .search-control { order: 3; flex: 1 0 100%; width: 100%; max-width: none; }
+  .topbar .nav-tabs { order: 4; display: none; }
   .topbar[data-menu-open='true'] .nav-tabs {
-    position: fixed; z-index: 81; top: max(66px, env(safe-area-inset-top)); right: 12px; left: 12px;
+    position: absolute; z-index: 81; top: calc(100% + 8px); right: 12px; left: 12px;
     display: grid; grid-template-columns: minmax(0, 1fr); gap: 5px; width: auto;
     max-height: min(72vh, 480px); overflow-y: auto; padding: 10px;
     border: 1px solid var(--line); border-radius: 16px; background: var(--surface);
     box-shadow: 0 18px 60px rgba(0,0,0,.4);
   }
   .topbar[data-menu-open='true'] .nav-tabs button { justify-content: flex-start; min-height: 48px; padding: 9px 14px; font-size: 14px; }
+  .topbar .mobile-menu-toggle { order: 2; }
   .mobile-menu-backdrop { position: fixed; z-index: 79; inset: 0; display: block; width: 100%; height: 100%; border: 0; background: rgba(3,8,6,.45); }
   .topbar[data-menu-open='true'] { z-index: 80; }
+  .track-row { grid-template-columns: 48px minmax(0, 1fr); grid-template-rows: auto auto; gap: 6px 10px; min-height: 0; padding: 10px; }
+  .track-number { display: none; }
+  .track-art { grid-column: 1; grid-row: 1 / 3; width: 48px; height: 48px; }
+  .track-meta { grid-column: 2; grid-row: 1; }
+  .track-stats { grid-column: 2; grid-row: 2; display: flex; flex-wrap: wrap; gap: 6px; min-width: 0; }
+  .genre-detail-content .track-row { grid-template-columns: 48px minmax(0, 1fr); grid-template-rows: auto auto; }
+  .genre-detail-content .track-number { display: none; }
+  .genre-detail-content .track-row .track-art { grid-column: 1; grid-row: 1 / 3; width: 48px; height: 48px; }
+  .genre-detail-content .track-meta { grid-column: 2; grid-row: 1; }
+  .genre-detail-content .track-stats { grid-column: 2; grid-row: 2; }
 }
 
 /* Keep interactive targets comfortably tappable without changing the compact
@@ -76,6 +92,20 @@ button, a, input, select, textarea { font: inherit; }
 html[data-legal-page='true'] .app-shell { display: none !important; }
 
 @media (max-width: 520px) {
+  .topbar { gap: 7px; padding: 8px 10px; }
+  .topbar .brand { order: 0; }
+  .topbar .brand .brand-icon { width: 36px; height: 36px; }
+  .topbar .brand small { display: none; }
+  .topbar .search-control { order: 3; flex-basis: 100%; gap: 6px; }
+  .topbar .account-menu-button { order: 1; width: 42px; justify-content: center; margin-left: auto; padding: 4px; }
+  .topbar .account-menu-label, .topbar .account-menu-button > svg { display: none; }
+  .topbar .mobile-menu-toggle { order: 2; width: 40px; height: 40px; flex-basis: 40px; }
+  .topbar .junubify-search-submit { min-height: 40px; padding: 0 10px; }
+  .track-row { grid-template-columns: 44px minmax(0, 1fr); gap: 6px 9px; }
+  .track-art { width: 44px; height: 44px; }
+  .track-stats .offline-download-button { min-width: 44px; }
+  .genre-detail-content .track-row { grid-template-columns: 44px minmax(0, 1fr); }
+  .genre-detail-content .track-row .track-art { width: 44px; height: 44px; }
   .legal-header { padding-right: 12px; padding-left: 12px; }
   .site-footer { width: calc(100% - 24px); margin-bottom: 96px; }
   .legal-content { width: calc(100% - 28px); }

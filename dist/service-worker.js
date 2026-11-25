@@ -1,4 +1,4 @@
-const CACHE_NAME = 'junubify-shell-v2';
+const CACHE_NAME = 'junubify-shell-v7';
 const APP_SHELL = ['/', '/manifest.webmanifest', '/icons/junubify.svg'];
 const PRIVATE_API_PATHS = ['/rest/v1/', '/auth/v1/', '/storage/v1/', '/functions/v1/'];
 
@@ -9,7 +9,7 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) => Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))))
+    caches.keys().then((keys) => Promise.all(keys.filter((key) => key.startsWith('junubify-shell-') && key !== CACHE_NAME).map((key) => caches.delete(key))))
   );
   self.clients.claim();
 });

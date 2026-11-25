@@ -8,9 +8,7 @@ import {
   Sun, Timer, TrendingUp, Upload, UserRound, Volume2, Wallet,
 } from 'lucide-react';
 import { OfflineDownloadButton } from './enhancements.jsx';
-import ogAudioUrl from '../CHIEF BUTEE - OG.mp3';
 import ogCoverUrl from '../1794694060126.jpg';
-import yungAudioUrl from '../Yung_Bwoy__They_Don’t_want__official_audio___ft_Dogg_Hustle(256k).mp3';
 import { supabase, supabaseConfigured } from './lib/supabase.js';
 import {
   createTrackAudioUrl,
@@ -19,8 +17,10 @@ import {
   submitTrack,
 } from './lib/catalog.js';
 
+const ogAudioUrl = new URL('../CHIEF BUTEE - OG.mp3', import.meta.url).href;
+const yungAudioUrl = new URL('../Yung_Bwoy__They_Don’t_want__official_audio___ft_Dogg_Hustle(256k).mp3', import.meta.url).href;
 const fallbackCover = 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&q=80&w=500';
-const emptyForm = { title: '', artist: '', genre: 'Afrobeat', album: '', cover: '' };
+const emptyForm = { title: '', artist: '', genre: 'Afrobeat', album: '', cover: '', requiresSubscription: false };
 const initialTrack = {
   id: 'chief-butee-og', title: 'O.G.', artist: 'Chief Butee', genre: 'Afrobeat',
   album: 'Single', plays: 0, cover: ogCoverUrl, audioUrl: ogAudioUrl,
@@ -29,6 +29,7 @@ const yungTrack = {
   id: 'yung-bwoy-they-dont-want', title: 'They Don’t Want', artist: 'Yung Bwoy', genre: 'Hip-Hop',
   album: 'Single', plays: 0, cover: ogCoverUrl, audioUrl: yungAudioUrl,
 };
+const MAX_PROFILE_PHOTO_BYTES = 5 * 1024 * 1024;
 const genres = [
   { name: 'Juba Afrobeat', filter: 'Afrobeat', subtitle: 'Modern rhythms from Juba and beyond', color: 'genre-green', cover: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&q=80&w=800' },
   { name: 'Traditional & Cultural', filter: 'Traditional', subtitle: 'Heritage sounds and cultural rhythms', color: 'genre-orange', cover: 'https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&fit=crop&q=80&w=800' },
@@ -57,6 +58,27 @@ function readStoredValue(key, fallback) {
   } catch {
     return fallback;
   }
+}
+
+function compressProfilePhoto(file) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Could not read that photo.'));
+    reader.onload = () => { image.src = String(reader.result || ''); };
+    image.onerror = () => reject(new Error('Choose a valid image file.'));
+    image.onload = () => {
+      const canvas = document.createElement('canvas');
+      const scale = Math.min(1, 320 / Math.max(image.naturalWidth, image.naturalHeight));
+      canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+      canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+      const context = canvas.getContext('2d');
+      if (!context) return reject(new Error('Could not process that photo.'));
+      context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL('image/jpeg', 0.78));
+    };
+    reader.readAsDataURL(file);
+  });
 }
 
 function formatTime(seconds) {
@@ -117,6 +139,7 @@ export default function App() {
   const [likedTrackSnapshots, setLikedTrackSnapshots] = useState(() => readStoredObject('junubify-liked-track-snapshots'));
   const [followedArtists, setFollowedArtists] = useState(() => readStoredObject('junubify-followed-artists'));
   const [profileName, setProfileName] = useState(() => readStoredValue('junubify-profile-name', ''));
+  const [profilePhoto, setProfilePhoto] = useState(() => readStoredValue('junubify-profile-photo', ''));
   const [theme, setTheme] = useState(() => {
     const storedTheme = readStoredValue('junubify-theme', 'system');
     return ['dark', 'light', 'system'].includes(storedTheme) ? storedTheme : 'system';
@@ -132,6 +155,7 @@ export default function App() {
   const [email, setEmail] = useState('');
   const [form, setForm] = useState(emptyForm);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [previewFile, setPreviewFile] = useState(null);
   const [rightsConfirmed, setRightsConfirmed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [loadingCatalog, setLoadingCatalog] = useState(false);
@@ -164,6 +188,32 @@ export default function App() {
     if (!name) return notify('Enter a display name for your profile.');
     if (updatePreference('junubify-profile-name', name, setProfileName)) {
       notify('Your profile was saved on this device.');
+    }
+  };
+
+  const saveProfilePhoto = async (file) => {
+    if (!file) return;
+    if (!file.type.startsWith('image/') || file.size > MAX_PROFILE_PHOTO_BYTES) {
+      notify('Choose an image smaller than 5 MB.');
+      return;
+    }
+    try {
+      const photo = await compressProfilePhoto(file);
+      if (updatePreference('junubify-profile-photo', photo, setProfilePhoto)) {
+        notify('Profile photo saved on this device.');
+      }
+    } catch (error) {
+      notify(error.message || 'Could not save this profile photo.');
+    }
+  };
+
+  const removeProfilePhoto = () => {
+    try {
+      window.localStorage.removeItem('junubify-profile-photo');
+      setProfilePhoto('');
+      notify('Profile photo removed.');
+    } catch {
+      notify('Could not remove the profile photo. Check your browser storage settings.');
     }
   };
 
@@ -292,7 +342,11 @@ export default function App() {
       return;
     }
     try {
-      const url = track.audioPath ? await createTrackAudioUrl(track.audioPath) : track.audioUrl;
+      const audioPath = track.requiresSubscription ? track.previewAudioPath : track.audioPath;
+      if (track.requiresSubscription && !audioPath) {
+        return notify('A preview is not available for this subscription-only release yet.');
+      }
+      const url = audioPath ? await createTrackAudioUrl(audioPath) : track.audioUrl;
       if (!url) return notify('Audio is not available for this track.');
       if (recordHistory && playing && playing.id !== track.id) setPlayHistory((history) => [playing, ...history].slice(0, 20));
       setPlayQueue(queue);
@@ -301,6 +355,7 @@ export default function App() {
       setAudioUrl(url);
       setPlaying(track);
       setIsPlaying(true);
+      if (track.requiresSubscription) notify('Preview only · subscription checkout is not available yet.');
     } catch (error) {
       notify(error?.message || 'Could not create a secure audio playback link.');
     }
@@ -454,7 +509,20 @@ export default function App() {
 
   const seek = (event) => {
     const value = Number(event.target.value);
-    if (audioRef.current && Number.isFinite(value)) audioRef.current.currentTime = value;
+    if (!audioRef.current || !Number.isFinite(value)) return;
+    const previewLimit = playing?.requiresSubscription ? 20 : Number.POSITIVE_INFINITY;
+    audioRef.current.currentTime = Math.min(value, previewLimit);
+  };
+
+  const handlePlaybackTimeUpdate = (event) => {
+    if (playing?.requiresSubscription && event.currentTarget.currentTime >= 20) {
+      event.currentTarget.pause();
+      event.currentTarget.currentTime = 20;
+      setPlaybackTime(20);
+      notify('Preview ended · subscribe to hear the full release.');
+      return;
+    }
+    setPlaybackTime(event.currentTarget.currentTime);
   };
 
   const handleFile = (file) => {
@@ -462,6 +530,13 @@ export default function App() {
     if (!/\.(mp3|wav|m4a|ogg|aac|flac)$/i.test(file.name) && !file.type.startsWith('audio/')) return notify('Choose an MP3, WAV, M4A, OGG, AAC, or FLAC audio file.');
     if (file.size > 50 * 1024 * 1024) return notify('Audio file must be 50 MB or smaller.');
     setSelectedFile(file);
+  };
+
+  const handlePreviewFile = (file) => {
+    if (!file) return;
+    if (!/\.(mp3|wav|m4a|ogg|aac|flac)$/i.test(file.name) && !file.type.startsWith('audio/')) return notify('Choose an MP3, WAV, M4A, OGG, AAC, or FLAC audio file.');
+    if (file.size > 50 * 1024 * 1024) return notify('Preview audio must be 50 MB or smaller.');
+    setPreviewFile(file);
   };
 
   const requestSignIn = async (event) => {
@@ -480,14 +555,16 @@ export default function App() {
     event.preventDefault();
     if (!session?.user) return notify('Sign in to submit a track.');
     if (!selectedFile) return notify('Choose an audio file before submitting.');
+    if (form.requiresSubscription && !previewFile) return notify('Add a preview clip for a subscription-only release.');
     if (!rightsConfirmed) return notify('Confirm that you own or control the rights to this audio.');
     if (!form.title.trim() || !form.artist.trim()) return notify('Add a song title and artist name.');
     setSubmitting(true);
     try {
-      const submission = await submitTrack({ file: selectedFile, form, artistId: session.user.id });
+      const submission = await submitTrack({ file: selectedFile, previewFile, form, artistId: session.user.id });
       setArtistTracks((current) => [submission, ...current]);
       setForm(emptyForm);
       setSelectedFile(null);
+      setPreviewFile(null);
       setRightsConfirmed(false);
       notify(submission.status === 'published'
         ? 'Track uploaded and published automatically for your verified artist account.'
@@ -556,13 +633,26 @@ export default function App() {
           <button className={tab === 'download' ? 'active' : ''} onClick={() => setTab('download')}><Smartphone size={17} /> Get the app</button>
         </nav>
         <button className={`account-menu-button ${tab === 'account' ? 'active' : ''}`} type="button" onClick={() => setTab('account')} aria-label="Open account and preferences">
-          <span className="account-menu-avatar">{accountDisplayName.split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase()}</span>
+          <span className={`account-menu-avatar ${profilePhoto ? 'has-profile-photo' : ''}`} style={profilePhoto ? { backgroundImage: `url("${profilePhoto}")` } : undefined} aria-hidden="true">{accountDisplayName.split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase()}</span>
           <span className="account-menu-label">Account</span>
           <ChevronDown size={14} aria-hidden="true" />
         </button>
       </header>
 
       <main className="content">
+        {tab === 'studio' && session?.user && <section className="panel subscription-release-settings">
+          <div><span className="eyebrow">OPTIONAL RELEASE ACCESS</span><h2>Subscriber preview</h2></div>
+          <p>Upload a separate preview clip for subscriber-only releases. Until checkout is available, listeners can hear the preview but the full audio stays locked.</p>
+          <label className="checkbox-row"><input type="checkbox" checked={form.requiresSubscription} onChange={(event) => {
+            const requiresSubscription = event.target.checked;
+            setForm((current) => ({ ...current, requiresSubscription }));
+            if (!requiresSubscription) setPreviewFile(null);
+          }} />This release requires a subscription</label>
+          {form.requiresSubscription && <label className="file-picker"><input type="file" accept="audio/*,.mp3,.wav,.m4a,.ogg,.aac,.flac" onChange={(event) => {
+            handlePreviewFile(event.target.files?.[0]);
+            event.target.value = '';
+          }} /><span>{previewFile ? previewFile.name : 'Choose a preview audio clip · up to 50 MB'}</span></label>}
+        </section>}
         {tab === 'discover' && (selectedGenre ? <section className="genre-detail-page">
           <div className={`genre-detail-hero ${selectedGenre.color}`} style={{ backgroundImage: `linear-gradient(100deg, rgba(7,17,15,.9), rgba(7,17,15,.45)), url(${selectedGenre.cover})` }}>
             <button type="button" className="genre-detail-back" onClick={() => {
@@ -583,11 +673,12 @@ export default function App() {
             {selectedGenreTracks.length ? <section className="track-list">{selectedGenreTracks.map((track, index) => <article className="track-row" key={track.id}>
               <span className="track-number">{String(index + 1).padStart(2, '0')}</span>
               <button className="track-art" onClick={() => playTrack(track, selectedGenreTracks.slice(index + 1))} aria-label={`Play ${track.title}`}><img src={track.cover || fallbackCover} alt="" /></button>
-              <div className="track-meta"><strong>{track.title || 'Untitled track'}</strong><span>{track.artist || 'Junubify artist'} · {selectedGenre.filter}</span></div>
+              <div className="track-meta"><strong>{track.title || 'Untitled track'}</strong><span>{track.artist || 'Junubify artist'} · {selectedGenre.filter}</span>{track.requiresSubscription && <small className="track-access-note">PREVIEW · SUBSCRIPTION REQUIRED</small>}</div>
               <div className="track-stats">
                 <button className={`track-action ${likedTracks[track.id] ? 'liked' : ''}`} onClick={() => toggleLike(track.id)} aria-label={likedTracks[track.id] ? 'Unlike track' : 'Like track'} aria-pressed={Boolean(likedTracks[track.id])}><Heart size={17} fill={likedTracks[track.id] ? 'currentColor' : 'none'} /></button>
                 <button className="mini-play" onClick={() => playTrack(track, selectedGenreTracks.slice(index + 1))} aria-label={`Play ${track.title}`}><Play size={15} fill="currentColor" /></button>
                 <button className="track-action" onClick={() => shareTrack(track)} aria-label="Share track"><Share2 size={16} /></button>
+                <OfflineDownloadButton track={track} />
               </div>
             </article>)}</section> : <div className="empty-catalog"><Music2 size={26} /><b>No tracks in this genre yet.</b><span>Check back as new releases are published.</span></div>}
           </section>
@@ -609,7 +700,7 @@ export default function App() {
           </section>
 
           <section className="genre-section"><div className="section-heading"><div><span className="eyebrow">EXPLORE</span><h2><Compass size={22} /> Explore Juba Genres</h2></div></div><div className="genre-grid">
-            {genres.map((genre) => <button type="button" key={genre.filter} className={`genre-card ${genre.color} ${genreFilter === genre.filter ? 'selected' : ''}`} onClick={() => selectGenre(genre)} style={{ backgroundImage: `linear-gradient(160deg, rgba(7, 17, 15, .46), rgba(7, 17, 15, .88)), ${genre.color === 'genre-orange' ? 'linear-gradient(135deg, rgba(201, 151, 66, .32), rgba(28, 54, 35, .22)), ' : ''}url(${genre.cover})` }}><strong>{genre.name}</strong><span>{genre.subtitle}</span><span className="genre-card-track-preview"><b>2 sample tracks</b><span>“O.G.” · Chief Butee</span><span>“They Don’t Want” · Yung Bwoy</span></span></button>)}
+            {genres.map((genre) => <button type="button" key={genre.filter} className={`genre-card ${genre.color} ${genreFilter === genre.filter ? 'selected' : ''}`} onClick={() => selectGenre(genre)} style={{ backgroundImage: `linear-gradient(160deg, rgba(7, 17, 15, .46), rgba(7, 17, 15, .88)), ${genre.color === 'genre-orange' ? 'linear-gradient(135deg, rgba(201, 151, 66, .32), rgba(28, 54, 35, .22)), ' : ''}url(${genre.cover})` }}><strong>{genre.name}</strong><span>{genre.subtitle}</span>            <span className="genre-card-track-preview"><b>YOUR NEXT FAVORITE SOUND</b><span>Fresh voices. Deep roots. Pure Juba energy.</span></span></button>)}
           </div></section>
 
           <section className="featured-playlists"><div className="section-heading"><div><span className="eyebrow">CURATED FOR YOU</span><h2><Sparkles size={22} /> Featured releases</h2></div></div><div className="playlist-grid">
@@ -644,10 +735,10 @@ export default function App() {
               {visibleTracks.map((track, index) => <article className="track-row" key={track.id}>
                 <span className="track-number">{String(index + 1).padStart(2, '0')}</span>
                 <button className="track-art" onClick={() => playTrack(track)} aria-label={`Play ${track.title}`}><img src={track.cover || fallbackCover} alt="" /></button>
-                <div className="track-meta"><strong>{track.title || 'Untitled track'}</strong><span>{track.artist || 'Junubify artist'} · {track.genre || 'Music'}</span></div>
+                <div className="track-meta"><strong>{track.title || 'Untitled track'}</strong><span>{track.artist || 'Junubify artist'} · {track.genre || 'Music'}</span>{track.requiresSubscription && <small className="track-access-note">PREVIEW · SUBSCRIPTION REQUIRED</small>}</div>
                 <div className="track-stats">
                   <span><Heart size={14} /> {Number(track.plays || 0).toLocaleString()}</span>
-                  <button className="mini-play" onClick={() => playTrack(track)} aria-label={`Play ${track.title}`}>{playing?.id === track.id && isPlaying ? <Pause size={15} /> : <Play size={15} />}</button>
+                  <button className="mini-play" onClick={() => playTrack(track)} aria-label={track.requiresSubscription ? `Play preview of ${track.title}` : `Play ${track.title}`}>{playing?.id === track.id && isPlaying ? <Pause size={15} /> : <Play size={15} />}</button>
                   <button className={`track-action ${likedTracks[track.id] ? 'liked' : ''}`} onClick={() => toggleLike(track.id)} aria-label={likedTracks[track.id] ? 'Unlike track' : 'Like track'} aria-pressed={Boolean(likedTracks[track.id])}><Heart size={17} fill={likedTracks[track.id] ? 'currentColor' : 'none'} /></button>
                   <button className="track-action" onClick={() => shareTrack(track)} aria-label="Share track"><Share2 size={16} /></button>
                   <OfflineDownloadButton track={track} />
@@ -659,13 +750,20 @@ export default function App() {
           <section className="upload-promo"><div><span className="eyebrow">ARE YOU AN ARTIST?</span><h2>Bring your sound to Junubify.</h2><p>Submit your music securely for review in Artist Studio.</p></div><button className="button primary" onClick={() => setTab('studio')}><Upload size={16} /> Open studio</button></section>
         </>)}
 
-        {tab === 'library' && <section className="liked-library"><div className="liked-library-hero"><div className="liked-art"><Heart size={44} fill="currentColor" /></div><div className="liked-library-copy"><span className="eyebrow">YOUR COLLECTION</span><h1>Liked Songs</h1><p>{likedCatalog.length} {likedCatalog.length === 1 ? 'song' : 'songs'} saved on this device</p></div><div className="liked-library-actions"><button className="button primary" disabled={!libraryTracks.length} onClick={() => playAll(libraryTracks)}><Play size={16} fill="currentColor" /> Play</button><button className="button secondary" disabled={!libraryTracks.length} onClick={() => { const [first, ...rest] = shuffleTracks(libraryTracks); if (first) playTrack(first, rest); }}><Shuffle size={16} /> Shuffle</button></div></div>{libraryGenres.length > 0 && <div className="library-filters" role="group" aria-label="Filter liked songs by genre"><button type="button" className={!libraryGenre ? 'active' : ''} aria-pressed={!libraryGenre} onClick={() => setLibraryGenre('')}>All</button>{libraryGenres.map((genre) => <button type="button" key={genre} className={libraryGenre === genre ? 'active' : ''} aria-pressed={libraryGenre === genre} onClick={() => setLibraryGenre(genre)}>{genre}</button>)}</div>}{libraryTracks.length ? <section className="track-list">{libraryTracks.map((track, index) => <article className="track-row" key={track.id}><span className="track-number">{String(index + 1).padStart(2, '0')}</span><button className="track-art" onClick={() => playTrack(track)} aria-label={`Play ${track.title}`}><img src={track.cover || fallbackCover} alt="" /></button><div className="track-meta"><strong>{track.title}</strong><span>{track.artist} · {track.genre || 'Music'}</span></div><div className="track-stats"><button className="track-action liked" onClick={() => toggleLike(track.id)} aria-label="Remove from liked songs"><Heart size={17} fill="currentColor" /></button><button className="mini-play" onClick={() => playTrack(track)} aria-label={`Play ${track.title}`}><Play size={15} /></button><button className="track-action" onClick={() => shareTrack(track)} aria-label={`Share ${track.title}`}><Share2 size={16} /></button></div></article>)}</section> : <div className="empty-catalog liked-empty"><Heart size={26} /><b>No liked songs yet.</b><span>Tap the heart on a track in Discover to save it here.</span><button className="button secondary" onClick={() => setTab('discover')}>Browse Discover</button></div>}</section>}
+        {tab === 'library' && <section className="liked-library"><div className="liked-library-hero"><div className="liked-art"><Heart size={44} fill="currentColor" /></div><div className="liked-library-copy"><span className="eyebrow">YOUR COLLECTION</span><h1>Liked Songs</h1><p>{likedCatalog.length} {likedCatalog.length === 1 ? 'song' : 'songs'} saved on this device</p></div><div className="liked-library-actions"><button className="button primary" disabled={!libraryTracks.length} onClick={() => playAll(libraryTracks)}><Play size={16} fill="currentColor" /> Play</button><button className="button secondary" disabled={!libraryTracks.length} onClick={() => { const [first, ...rest] = shuffleTracks(libraryTracks); if (first) playTrack(first, rest); }}><Shuffle size={16} /> Shuffle</button></div></div>{libraryGenres.length > 0 && <div className="library-filters" role="group" aria-label="Filter liked songs by genre"><button type="button" className={!libraryGenre ? 'active' : ''} aria-pressed={!libraryGenre} onClick={() => setLibraryGenre('')}>All</button>{libraryGenres.map((genre) => <button type="button" key={genre} className={libraryGenre === genre ? 'active' : ''} aria-pressed={libraryGenre === genre} onClick={() => setLibraryGenre(genre)}>{genre}</button>)}</div>}{libraryTracks.length ? <section className="track-list">{libraryTracks.map((track, index) => <article className="track-row" key={track.id}><span className="track-number">{String(index + 1).padStart(2, '0')}</span><button className="track-art" onClick={() => playTrack(track)} aria-label={track.requiresSubscription ? `Play preview of ${track.title}` : `Play ${track.title}`}><img src={track.cover || fallbackCover} alt="" /></button><div className="track-meta"><strong>{track.title}</strong><span>{track.artist} · {track.genre || 'Music'}</span>{track.requiresSubscription && <small className="track-access-note">PREVIEW · SUBSCRIPTION REQUIRED</small>}</div><div className="track-stats"><button className="track-action liked" onClick={() => toggleLike(track.id)} aria-label="Remove from liked songs"><Heart size={17} fill="currentColor" /></button><button className="mini-play" onClick={() => playTrack(track)} aria-label={track.requiresSubscription ? `Play preview of ${track.title}` : `Play ${track.title}`}><Play size={15} /></button><button className="track-action" onClick={() => shareTrack(track)} aria-label={`Share ${track.title}`}><Share2 size={16} /></button><OfflineDownloadButton track={track} /></div></article>)}</section> : <div className="empty-catalog liked-empty"><Heart size={26} /><b>No liked songs yet.</b><span>Tap the heart on a track in Discover to save it here.</span><button className="button secondary" onClick={() => setTab('discover')}>Browse Discover</button></div>}</section>}
 
         {tab === 'account' && <section className="account-dashboard">
           <header className="account-heading"><span className="eyebrow"><Settings size={14} /> PERSONAL DASHBOARD</span><h1>Your account</h1><p>Make Junubify feel right for you. Your profile and preferences stay on this device.</p></header>
           <section className="account-profile-card">
-            <div className="account-avatar" aria-hidden="true">{accountDisplayName.split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase()}</div>
+            <div className={`account-avatar ${profilePhoto ? 'has-profile-photo' : ''}`} style={profilePhoto ? { backgroundImage: `url("${profilePhoto}")` } : undefined} aria-hidden="true">{accountDisplayName.split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase()}</div>
             <div><span className="account-card-kicker">PROFILE</span><h2>{accountDisplayName}</h2><p>{session?.user?.email || 'Guest profile · saved on this device'}</p></div>
+            <div className="profile-photo-control">
+              <label className="button secondary profile-photo-button"><span>{profilePhoto ? 'Change photo' : 'Add photo'}</span><input type="file" accept="image/*" aria-label="Choose a profile photo" onChange={(event) => {
+                void saveProfilePhoto(event.target.files?.[0]);
+                event.target.value = '';
+              }} /></label>
+              {profilePhoto && <button className="text-button profile-photo-remove" type="button" onClick={removeProfilePhoto}>Remove photo</button>}
+            </div>
           </section>
           <div className="account-settings-grid">
             <section className="account-card">
@@ -718,6 +816,14 @@ export default function App() {
             <span className="monetization-status-badge">Setup required</span>
           </section>
           <div className="monetization-grid">
+            <article className="monetization-card membership-card">
+              <span className="eyebrow">FAN MEMBERSHIP</span>
+              <h2>Unlock the full Junubify catalog</h2>
+              <p>One simple membership for ad-free listening and full subscriber-only releases.</p>
+              <ul><li>Full-track listening</li><li>Save releases for offline playback</li><li>Cancel before the next billing period</li></ul>
+              <button className="button primary full" type="button" disabled>Subscribe · Coming soon</button>
+              <small>Price and local payment method will appear only after merchant setup is verified.</small>
+            </article>
             <article className="monetization-card owner-revenue-card">
               <span className="eyebrow">FOR JUNUBIFY</span>
               <h2>Build sustainable platform income</h2>
@@ -729,6 +835,11 @@ export default function App() {
               <h2>Make releases earn for their creators</h2>
               <p>Artist balances must come from verified payments and reconciled settlements—not estimated plays or client-side counters.</p>
               <ul><li>Artist payout accounts: not connected</li><li>Revenue-share terms: not agreed</li><li>Royalty ledger: foundation only</li></ul>
+              <div className="payout-summary" aria-label="Artist payout summary">
+                <span><small>Available</small><b>Not settled</b></span>
+                <span><small>Pending</small><b>Not settled</b></span>
+                <span><small>Next payout</small><b>Unavailable</b></span>
+              </div>
               <button className="button primary" type="button" onClick={() => setTab('studio')}><Upload size={16} /> Open Artist Studio</button>
             </article>
           </div>
@@ -742,7 +853,7 @@ export default function App() {
         {tab === 'download' && <section className="app-download panel"><div className="download-icon"><Smartphone size={42} /></div><span className="eyebrow">LISTEN WHEREVER YOU ARE</span><h1>Get Junubify for Android & iOS</h1><p>Use your browser menu and choose “Add to Home screen”.</p><div className="store-buttons"><div className="store-placeholder"><Download size={22} /><span><small>ANDROID APP</small><b>Coming soon</b></span></div><div className="store-placeholder"><Download size={22} /><span><small>APPLE APP</small><b>Coming soon</b></span></div></div></section>}
       </main>
 
-      <audio id="junubify-main-audio" ref={audioRef} src={audioUrl || undefined} preload="metadata" onLoadedMetadata={(event) => setDuration(event.currentTarget.duration)} onTimeUpdate={(event) => setPlaybackTime(event.currentTarget.currentTime)} onPlay={() => setIsPlaying(true)} onPause={() => setIsPlaying(false)} onEnded={playNext} />
+      <audio id="junubify-main-audio" ref={audioRef} src={audioUrl || undefined} preload="metadata" autoPlay onLoadedMetadata={(event) => setDuration(event.currentTarget.duration)} onTimeUpdate={handlePlaybackTimeUpdate} onPlay={() => setIsPlaying(true)} onPause={() => setIsPlaying(false)} onEnded={playNext} />
 
       {playerOpen && playing && (
         <section className="now-playing-view" role="dialog" aria-modal="true" aria-label={`Now playing ${playing.title}`}>
@@ -760,9 +871,14 @@ export default function App() {
                 <button className={`track-action ${likedTracks[playing.id] ? 'liked' : ''}`} onClick={() => toggleLike(playing.id)} aria-label="Like this song"><Heart size={22} fill={likedTracks[playing.id] ? 'currentColor' : 'none'} /></button>
               </div>
             </div>
+            {playing.requiresSubscription && <section className="subscription-preview-panel">
+              <span className="eyebrow">PREVIEW · SUBSCRIPTION REQUIRED</span>
+              <p>You’re listening to the first 20 seconds. Subscription checkout is not available yet, so the full release remains locked.</p>
+              <button className="button secondary" type="button" disabled>Subscribe · Coming soon</button>
+            </section>}
             <div className="full-player-progress">
-              <input aria-label="Seek through track" type="range" min="0" max={duration || 1} value={Math.min(playbackTime, duration || 0)} onChange={seek} />
-              <div><span>{formatTime(playbackTime)}</span><span>{formatTime(duration)}</span></div>
+              <input aria-label="Seek through track" type="range" min="0" max={playing.requiresSubscription ? 20 : (duration || 1)} value={Math.min(playbackTime, playing.requiresSubscription ? 20 : (duration || 0))} onChange={seek} />
+              <div><span>{formatTime(playbackTime)}</span><span>{formatTime(playing.requiresSubscription ? 20 : duration)}</span></div>
             </div>
             <div className="full-player-controls">
               <button className={shuffle ? 'player-icon-button active' : 'player-icon-button'} onClick={() => { setShuffle((value) => !value); if (!shuffle) setPlayQueue(shuffleTracks(playQueue)); }} aria-label="Toggle shuffle"><Shuffle size={22} /></button>
